@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ERP Pessoal{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total de Usuários
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalUsers">-</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Usuários Ativos
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeUsers">-</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Administradores
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="adminUsers">-</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-shield fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Membros
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="memberUsers">-</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Usuários Recentes</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="recentUsersTable">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Data de Criação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados carregados via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Ações Rápidas</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/profile" class="btn btn-primary">
+                        <i class="fas fa-user me-2"></i>
+                        Meu Perfil
+                    </a>
+                    <a href="/financeiro" class="btn btn-warning">
+                        <i class="fas fa-wallet me-2"></i>
+                        Módulo Financeiro
+                    </a>
+                    <a href="/admin" class="btn btn-success" id="adminBtn" style="display: none;">
+                        <i class="fas fa-cog me-2"></i>
+                        Painel Admin
+                    </a>
+                    <button class="btn btn-info" onclick="refreshData()">
+                        <i class="fas fa-sync me-2"></i>
+                        Atualizar Dados
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Carregar dados do dashboard
+    async function loadDashboardData() {
+        const token = localStorage.getItem('token');
+        
+        try {
+            // Carregar lista de usuários (apenas para admin)
+            const response = await fetch('/users/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const users = await response.json();
+                
+                // Atualizar estatísticas
+                document.getElementById('totalUsers').textContent = users.length;
+                document.getElementById('activeUsers').textContent = users.filter(u => u.is_active).length;
+                document.getElementById('adminUsers').textContent = users.filter(u => u.role === 'admin').length;
+                document.getElementById('memberUsers').textContent = users.filter(u => u.role === 'membro').length;
+                
+                // Preencher tabela de usuários recentes
+                const tbody = document.querySelector('#recentUsersTable tbody');
+                tbody.innerHTML = '';
+                
+                users.slice(0, 5).forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.full_name}</td>
+                        <td>${user.email}</td>
+                        <td>
+                            <span class="badge ${user.role === 'admin' ? 'bg-danger' : 'bg-primary'}">
+                                ${user.role === 'admin' ? 'Admin' : 'Membro'}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge ${user.is_active ? 'bg-success' : 'bg-secondary'}">
+                                ${user.is_active ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </td>
+                        <td>${new Date(user.created_at).toLocaleDateString('pt-BR')}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                // Mostrar botão admin se for admin
+                const currentUser = await getCurrentUser();
+                if (currentUser.role === 'admin') {
+                    document.getElementById('adminBtn').style.display = 'block';
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados do dashboard:', error);
+        }
+    }
+    
+    // Obter usuário atual
+    async function getCurrentUser() {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/auth/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        return await response.json();
+    }
+    
+    // Atualizar dados
+    function refreshData() {
+        loadDashboardData();
+    }
+    
+    // Carregar dados quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardData();
+    });
+</script>
+{% endblock %}

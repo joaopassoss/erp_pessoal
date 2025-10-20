@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo Financeiro - ERP Pessoal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin: 0.25rem 0;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 1rem 1rem 0 0 !important;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .progress {
+            height: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .finance-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .finance-card.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .finance-card.warning {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        .finance-card.info {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-white mb-4">
+                        <i class="fas fa-wallet me-2"></i>
+                        Financeiro
+                    </h4>
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#" onclick="showSection('dashboard')">
+                            <i class="fas fa-tachometer-alt me-2"></i>
+                            Dashboard
+                        </a>
+                        <a class="nav-link" href="#" onclick="showSection('contas-pagar')">
+                            <i class="fas fa-credit-card me-2"></i>
+                            Contas a Pagar
+                        </a>
+                        <a class="nav-link" href="#" onclick="showSection('contas-receber')">
+                            <i class="fas fa-money-bill-wave me-2"></i>
+                            Contas a Receber
+                        </a>
+                        <a class="nav-link" href="#" onclick="showSection('metas')">
+                            <i class="fas fa-bullseye me-2"></i>
+                            Metas Financeiras
+                        </a>
+                        <a class="nav-link" href="#" onclick="showSection('investimentos')">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Investimentos
+                        </a>
+                        <a class="nav-link" href="#" onclick="showSection('relatorios')">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Relatórios
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 p-4">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="content-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard Financeiro</h2>
+                        <button class="btn btn-primary" onclick="loadDashboard()">
+                            <i class="fas fa-sync-alt me-2"></i>Atualizar
+                        </button>
+                    </div>
+
+                    <!-- Cards de Resumo -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-3">
+                            <div class="card finance-card">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-wallet fa-2x mb-2"></i>
+                                    <h5>Saldo Atual</h5>
+                                    <h3 id="saldo-atual">R$ 0,00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card finance-card success">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-arrow-up fa-2x mb-2"></i>
+                                    <h5>Receitas do Mês</h5>
+                                    <h3 id="receitas-mes">R$ 0,00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card finance-card warning">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-arrow-down fa-2x mb-2"></i>
+                                    <h5>Despesas do Mês</h5>
+                                    <h3 id="despesas-mes">R$ 0,00</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card finance-card info">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-line fa-2x mb-2"></i>
+                                    <h5>Total Investido</h5>
+                                    <h3 id="total-investido">R$ 0,00</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico e Próximas Contas -->
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-area me-2"></i>Evolução Financeira (12 meses)</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="graficoEvolucao"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-clock me-2"></i>Próximas Contas</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="proximas-contas">
+                                        <p class="text-muted">Carregando...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contas a Pagar Section -->
+                <div id="contas-pagar-section" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-credit-card me-2"></i>Contas a Pagar</h2>
+                        <button class="btn btn-primary" onclick="showModal('modalContaPagar')">
+                            <i class="fas fa-plus me-2"></i>Nova Conta
+                        </button>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="filtro-status-pagar">
+                                        <option value="">Todos</option>
+                                        <option value="pendente">Pendente</option>
+                                        <option value="pago">Pago</option>
+                                        <option value="vencido">Vencido</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Categoria</label>
+                                    <select class="form-select" id="filtro-categoria-pagar">
+                                        <option value="">Todas</option>
+                                        <option value="alimentacao">Alimentação</option>
+                                        <option value="transporte">Transporte</option>
+                                        <option value="moradia">Moradia</option>
+                                        <option value="saude">Saúde</option>
+                                        <option value="educacao">Educação</option>
+                                        <option value="lazer">Lazer</option>
+                                        <option value="outros">Outros</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Mês</label>
+                                    <select class="form-select" id="filtro-mes-pagar">
+                                        <option value="">Todos</option>
+                                        <option value="1">Janeiro</option>
+                                        <option value="2">Fevereiro</option>
+                                        <option value="3">Março</option>
+                                        <option value="4">Abril</option>
+                                        <option value="5">Maio</option>
+                                        <option value="6">Junho</option>
+                                        <option value="7">Julho</option>
+                                        <option value="8">Agosto</option>
+                                        <option value="9">Setembro</option>
+                                        <option value="10">Outubro</option>
+                                        <option value="11">Novembro</option>
+                                        <option value="12">Dezembro</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn btn-outline-primary w-100" onclick="filtrarContasPagar()">
+                                        <i class="fas fa-filter me-2"></i>Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Contas -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="lista-contas-pagar">
+                                <p class="text-muted">Carregando contas...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contas a Receber Section -->
+                <div id="contas-receber-section" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-money-bill-wave me-2"></i>Contas a Receber</h2>
+                        <button class="btn btn-primary" onclick="showModal('modalContaReceber')">
+                            <i class="fas fa-plus me-2"></i>Nova Conta
+                        </button>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="filtro-status-receber">
+                                        <option value="">Todos</option>
+                                        <option value="pendente">Pendente</option>
+                                        <option value="pago">Recebido</option>
+                                        <option value="vencido">Vencido</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Categoria</label>
+                                    <select class="form-select" id="filtro-categoria-receber">
+                                        <option value="">Todas</option>
+                                        <option value="alimentacao">Alimentação</option>
+                                        <option value="transporte">Transporte</option>
+                                        <option value="moradia">Moradia</option>
+                                        <option value="saude">Saúde</option>
+                                        <option value="educacao">Educação</option>
+                                        <option value="lazer">Lazer</option>
+                                        <option value="outros">Outros</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Mês</label>
+                                    <select class="form-select" id="filtro-mes-receber">
+                                        <option value="">Todos</option>
+                                        <option value="1">Janeiro</option>
+                                        <option value="2">Fevereiro</option>
+                                        <option value="3">Março</option>
+                                        <option value="4">Abril</option>
+                                        <option value="5">Maio</option>
+                                        <option value="6">Junho</option>
+                                        <option value="7">Julho</option>
+                                        <option value="8">Agosto</option>
+                                        <option value="9">Setembro</option>
+                                        <option value="10">Outubro</option>
+                                        <option value="11">Novembro</option>
+                                        <option value="12">Dezembro</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn btn-outline-primary w-100" onclick="filtrarContasReceber()">
+                                        <i class="fas fa-filter me-2"></i>Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Contas -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="lista-contas-receber">
+                                <p class="text-muted">Carregando contas...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metas Financeiras Section -->
+                <div id="metas-section" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-bullseye me-2"></i>Metas Financeiras</h2>
+                        <button class="btn btn-primary" onclick="showModal('modalMeta')">
+                            <i class="fas fa-plus me-2"></i>Nova Meta
+                        </button>
+                    </div>
+
+                    <!-- Cards de Metas -->
+                    <div id="lista-metas" class="row">
+                        <p class="text-muted">Carregando metas...</p>
+                    </div>
+                </div>
+
+                <!-- Investimentos Section -->
+                <div id="investimentos-section" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-chart-line me-2"></i>Investimentos</h2>
+                        <button class="btn btn-primary" onclick="showModal('modalInvestimento')">
+                            <i class="fas fa-plus me-2"></i>Novo Investimento
+                        </button>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">Tipo</label>
+                                    <select class="form-select" id="filtro-tipo-investimento">
+                                        <option value="">Todos</option>
+                                        <option value="poupanca">Poupança</option>
+                                        <option value="cdb">CDB</option>
+                                        <option value="lci">LCI</option>
+                                        <option value="lca">LCA</option>
+                                        <option value="fundos">Fundos</option>
+                                        <option value="acoes">Ações</option>
+                                        <option value="cripto">Cripto</option>
+                                        <option value="outros">Outros</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="filtro-status-investimento">
+                                        <option value="">Todos</option>
+                                        <option value="true">Ativo</option>
+                                        <option value="false">Inativo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn btn-outline-primary w-100" onclick="filtrarInvestimentos()">
+                                        <i class="fas fa-filter me-2"></i>Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Investimentos -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="lista-investimentos">
+                                <p class="text-muted">Carregando investimentos...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Relatórios Section -->
+                <div id="relatorios-section" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-chart-bar me-2"></i>Relatórios</h2>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-pie-chart me-2"></i>Despesas por Categoria</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="graficoCategorias"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-pie me-2"></i>Receitas por Categoria</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="graficoReceitas"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Modal Conta a Pagar -->
+    <div class="modal fade" id="modalContaPagar" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nova Conta a Pagar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formContaPagar">
+                        <div class="mb-3">
+                            <label class="form-label">Descrição</label>
+                            <input type="text" class="form-control" id="descricaoPagar" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Valor</label>
+                            <input type="number" class="form-control" id="valorPagar" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data de Vencimento</label>
+                            <input type="date" class="form-control" id="vencimentoPagar" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Categoria</label>
+                            <select class="form-select" id="categoriaPagar" required>
+                                <option value="alimentacao">Alimentação</option>
+                                <option value="transporte">Transporte</option>
+                                <option value="moradia">Moradia</option>
+                                <option value="saude">Saúde</option>
+                                <option value="educacao">Educação</option>
+                                <option value="lazer">Lazer</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoesPagar" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarContaPagar()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Conta a Receber -->
+    <div class="modal fade" id="modalContaReceber" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nova Conta a Receber</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formContaReceber">
+                        <div class="mb-3">
+                            <label class="form-label">Descrição</label>
+                            <input type="text" class="form-control" id="descricaoReceber" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Valor</label>
+                            <input type="number" class="form-control" id="valorReceber" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data de Vencimento</label>
+                            <input type="date" class="form-control" id="vencimentoReceber" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Categoria</label>
+                            <select class="form-select" id="categoriaReceber" required>
+                                <option value="alimentacao">Alimentação</option>
+                                <option value="transporte">Transporte</option>
+                                <option value="moradia">Moradia</option>
+                                <option value="saude">Saúde</option>
+                                <option value="educacao">Educação</option>
+                                <option value="lazer">Lazer</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoesReceber" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarContaReceber()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Meta Financeira -->
+    <div class="modal fade" id="modalMeta" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nova Meta Financeira</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formMeta">
+                        <div class="mb-3">
+                            <label class="form-label">Título</label>
+                            <input type="text" class="form-control" id="tituloMeta" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descrição</label>
+                            <textarea class="form-control" id="descricaoMeta" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Valor da Meta</label>
+                            <input type="number" class="form-control" id="valorMeta" step="0.01" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Data de Início</label>
+                                    <input type="date" class="form-control" id="inicioMeta" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Data da Meta</label>
+                                    <input type="date" class="form-control" id="dataMeta" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cor</label>
+                            <input type="color" class="form-control form-control-color" id="corMeta" value="#3B82F6">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarMeta()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Investimento -->
+    <div class="modal fade" id="modalInvestimento" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Novo Investimento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formInvestimento">
+                        <div class="mb-3">
+                            <label class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="nomeInvestimento" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tipo</label>
+                            <select class="form-select" id="tipoInvestimento" required>
+                                <option value="poupanca">Poupança</option>
+                                <option value="cdb">CDB</option>
+                                <option value="lci">LCI</option>
+                                <option value="lca">LCA</option>
+                                <option value="fundos">Fundos</option>
+                                <option value="acoes">Ações</option>
+                                <option value="cripto">Cripto</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Valor Investido</label>
+                                    <input type="number" class="form-control" id="valorInvestido" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Valor Atual</label>
+                                    <input type="number" class="form-control" id="valorAtual" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data do Investimento</label>
+                            <input type="date" class="form-control" id="dataInvestimento" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rentabilidade Anual (%)</label>
+                            <input type="number" class="form-control" id="rentabilidadeAnual" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoesInvestimento" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarInvestimento()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Transação de Meta -->
+    <div class="modal fade" id="modalTransacaoMeta" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adicionar Valor à Meta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formTransacaoMeta">
+                        <input type="hidden" id="metaIdTransacao">
+                        <div class="mb-3">
+                            <label class="form-label">Valor</label>
+                            <input type="number" class="form-control" id="valorTransacao" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descrição</label>
+                            <input type="text" class="form-control" id="descricaoTransacao">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data da Transação</label>
+                            <input type="date" class="form-control" id="dataTransacao" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarTransacaoMeta()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variáveis globais
+        let token = localStorage.getItem('token');
+        let graficoEvolucao = null;
+        let graficoCategorias = null;
+        let graficoReceitas = null;
+
+        // Configurar headers para requisições
+        const headers = {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+
+        // Função para mostrar seções
+        function showSection(sectionName) {
+            // Esconder todas as seções
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Remover classe active de todos os links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Mostrar seção selecionada
+            document.getElementById(sectionName + '-section').style.display = 'block';
+            
+            // Adicionar classe active ao link
+            event.target.classList.add('active');
+            
+            // Carregar dados da seção
+            switch(sectionName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'contas-pagar':
+                    loadContasPagar();
+                    break;
+                case 'contas-receber':
+                    loadContasReceber();
+                    break;
+                case 'metas':
+                    loadMetas();
+                    break;
+                case 'investimentos':
+                    loadInvestimentos();
+                    break;
+                case 'relatorios':
+                    loadRelatorios();
+                    break;
+            }
+        }
+
+        // Função para mostrar modais
+        function showModal(modalId) {
+            const modal = new bootstrap.Modal(document.getElementById(modalId));
+            modal.show();
+        }
+
+        // Função para formatar moeda
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(valor);
+        }
+
+        // Função para formatar data
+        function formatarData(data) {
+            return new Date(data).toLocaleDateString('pt-BR');
+        }
+
+        // Função para obter status badge
+        function getStatusBadge(status) {
+            const statusMap = {
+                'pendente': 'warning',
+                'pago': 'success',
+                'vencido': 'danger',
+                'cancelado': 'secondary'
+            };
+            return `<span class="badge bg-${statusMap[status]} status-badge">${status.toUpperCase()}</span>`;
+        }
+
+        // Carregar Dashboard
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/financeiro/dashboard', { headers });
+                const data = await response.json();
+                
+                document.getElementById('saldo-atual').textContent = formatarMoeda(data.saldo_atual);
+                document.getElementById('receitas-mes').textContent = formatarMoeda(data.receitas_mes);
+                document.getElementById('despesas-mes').textContent = formatarMoeda(data.despesas_mes);
+                document.getElementById('total-investido').textContent = formatarMoeda(data.total_investido);
+                
+                // Carregar próximas contas
+                const proximasContasHtml = data.proximas_contas.map(conta => `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>${conta.descricao}</strong>
+                            <br>
+                            <small class="text-muted">Vence em ${formatarData(conta.data_vencimento)}</small>
+                        </div>
+                        <div class="text-end">
+                            <strong>${formatarMoeda(conta.valor)}</strong>
+                            <br>
+                            ${getStatusBadge(conta.status)}
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('proximas-contas').innerHTML = proximasContasHtml || '<p class="text-muted">Nenhuma conta próxima</p>';
+                
+                // Carregar gráfico de evolução
+                loadGraficoEvolucao();
+                
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+            }
+        }
+
+        // Carregar gráfico de evolução
+        async function loadGraficoEvolucao() {
+            try {
+                const response = await fetch('/api/financeiro/graficos/mensal?meses=12', { headers });
+                const data = await response.json();
+                
+                const ctx = document.getElementById('graficoEvolucao').getContext('2d');
+                
+                if (graficoEvolucao) {
+                    graficoEvolucao.destroy();
+                }
+                
+                graficoEvolucao = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(item => item.mes),
+                        datasets: [{
+                            label: 'Receitas',
+                            data: data.map(item => item.receitas),
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1
+                        }, {
+                            label: 'Despesas',
+                            data: data.map(item => item.despesas),
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatarMoeda(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar gráfico de evolução:', error);
+            }
+        }
+
+        // Carregar Contas a Pagar
+        async function loadContasPagar() {
+            try {
+                const response = await fetch('/api/financeiro/contas-pagar', { headers });
+                const contas = await response.json();
+                
+                const contasHtml = contas.map(conta => `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h6 class="mb-1">${conta.descricao}</h6>
+                                    <small class="text-muted">${conta.categoria} • Vence em ${formatarData(conta.data_vencimento)}</small>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <h5 class="mb-0">${formatarMoeda(conta.valor)}</h5>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    ${getStatusBadge(conta.status)}
+                                    <div class="btn-group mt-2">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="editarContaPagar(${conta.id})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        ${conta.status === 'pendente' ? 
+                                            `<button class="btn btn-sm btn-outline-success" onclick="marcarComoPago(${conta.id})">
+                                                <i class="fas fa-check"></i>
+                                            </button>` : ''
+                                        }
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deletarContaPagar(${conta.id})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('lista-contas-pagar').innerHTML = contasHtml || '<p class="text-muted">Nenhuma conta encontrada</p>';
+                
+            } catch (error) {
+                console.error('Erro ao carregar contas a pagar:', error);
+            }
+        }
+
+        // Carregar Contas a Receber
+        async function loadContasReceber() {
+            try {
+                const response = await fetch('/api/financeiro/contas-receber', { headers });
+                const contas = await response.json();
+                
+                const contasHtml = contas.map(conta => `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h6 class="mb-1">${conta.descricao}</h6>
+                                    <small class="text-muted">${conta.categoria} • Vence em ${formatarData(conta.data_vencimento)}</small>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <h5 class="mb-0">${formatarMoeda(conta.valor)}</h5>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    ${getStatusBadge(conta.status)}
+                                    <div class="btn-group mt-2">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="editarContaReceber(${conta.id})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        ${conta.status === 'pendente' ? 
+                                            `<button class="btn btn-sm btn-outline-success" onclick="marcarComoRecebido(${conta.id})">
+                                                <i class="fas fa-check"></i>
+                                            </button>` : ''
+                                        }
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deletarContaReceber(${conta.id})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('lista-contas-receber').innerHTML = contasHtml || '<p class="text-muted">Nenhuma conta encontrada</p>';
+                
+            } catch (error) {
+                console.error('Erro ao carregar contas a receber:', error);
+            }
+        }
+
+        // Carregar Metas
+        async function loadMetas() {
+            try {
+                const response = await fetch('/api/financeiro/metas', { headers });
+                const metas = await response.json();
+                
+                const metasHtml = metas.map(meta => {
+                    const progresso = (meta.valor_atual / meta.valor_meta) * 100;
+                    const statusClass = meta.status === 'concluida' ? 'success' : 
+                                      meta.status === 'pausada' ? 'warning' : 'primary';
+                    
+                    return `
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h5 class="card-title">${meta.titulo}</h5>
+                                        <span class="badge bg-${statusClass}">${meta.status.toUpperCase()}</span>
+                                    </div>
+                                    <p class="card-text text-muted">${meta.descricao || 'Sem descrição'}</p>
+                                    
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>Progresso</small>
+                                            <small>${formatarMoeda(meta.valor_atual)} / ${formatarMoeda(meta.valor_meta)}</small>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-${statusClass}" style="width: ${Math.min(progresso, 100)}%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            Meta: ${formatarData(meta.data_meta)}
+                                        </small>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="adicionarValorMeta(${meta.id})">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="verTransacoesMeta(${meta.id})">
+                                                <i class="fas fa-history"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deletarMeta(${meta.id})">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('lista-metas').innerHTML = metasHtml || '<p class="text-muted">Nenhuma meta encontrada</p>';
+                
+            } catch (error) {
+                console.error('Erro ao carregar metas:', error);
+            }
+        }
+
+        // Carregar Investimentos
+        async function loadInvestimentos() {
+            try {
+                const response = await fetch('/api/financeiro/investimentos', { headers });
+                const investimentos = await response.json();
+                
+                const investimentosHtml = investimentos.map(inv => {
+                    const rentabilidade = ((inv.valor_atual - inv.valor_investido) / inv.valor_investido) * 100;
+                    const rentabilidadeClass = rentabilidade >= 0 ? 'text-success' : 'text-danger';
+                    
+                    return `
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-4">
+                                        <h6 class="mb-1">${inv.nome}</h6>
+                                        <small class="text-muted">${inv.tipo.toUpperCase()}</small>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <h6 class="mb-0">${formatarMoeda(inv.valor_investido)}</h6>
+                                        <small class="text-muted">Investido</small>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <h6 class="mb-0">${formatarMoeda(inv.valor_atual)}</h6>
+                                        <small class="text-muted">Atual</small>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <h6 class="mb-0 ${rentabilidadeClass}">${rentabilidade.toFixed(2)}%</h6>
+                                        <small class="text-muted">Rentabilidade</small>
+                                    </div>
+                                    <div class="col-md-2 text-end">
+                                        <span class="badge bg-${inv.ativo ? 'success' : 'secondary'}">${inv.ativo ? 'ATIVO' : 'INATIVO'}</span>
+                                        <div class="btn-group mt-2">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="editarInvestimento(${inv.id})">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deletarInvestimento(${inv.id})">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('lista-investimentos').innerHTML = investimentosHtml || '<p class="text-muted">Nenhum investimento encontrado</p>';
+                
+            } catch (error) {
+                console.error('Erro ao carregar investimentos:', error);
+            }
+        }
+
+        // Carregar Relatórios
+        async function loadRelatorios() {
+            try {
+                // Carregar relatório de despesas por categoria
+                const responseDespesas = await fetch('/api/financeiro/relatorios/categorias?tipo=despesas', { headers });
+                const despesas = await responseDespesas.json();
+                
+                // Carregar relatório de receitas por categoria
+                const responseReceitas = await fetch('/api/financeiro/relatorios/categorias?tipo=receitas', { headers });
+                const receitas = await responseReceitas.json();
+                
+                // Gráfico de despesas
+                const ctxDespesas = document.getElementById('graficoCategorias').getContext('2d');
+                if (graficoCategorias) {
+                    graficoCategorias.destroy();
+                }
+                
+                graficoCategorias = new Chart(ctxDespesas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: despesas.map(item => item.categoria),
+                        datasets: [{
+                            data: despesas.map(item => item.total),
+                            backgroundColor: [
+                                '#FF6384',
+                                '#36A2EB',
+                                '#FFCE56',
+                                '#4BC0C0',
+                                '#9966FF',
+                                '#FF9F40',
+                                '#FF6384'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+                
+                // Gráfico de receitas
+                const ctxReceitas = document.getElementById('graficoReceitas').getContext('2d');
+                if (graficoReceitas) {
+                    graficoReceitas.destroy();
+                }
+                
+                graficoReceitas = new Chart(ctxReceitas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: receitas.map(item => item.categoria),
+                        datasets: [{
+                            data: receitas.map(item => item.total),
+                            backgroundColor: [
+                                '#4BC0C0',
+                                '#36A2EB',
+                                '#FFCE56',
+                                '#FF6384',
+                                '#9966FF',
+                                '#FF9F40',
+                                '#4BC0C0'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar relatórios:', error);
+            }
+        }
+
+        // Funções de CRUD para Contas a Pagar
+        async function salvarContaPagar() {
+            const conta = {
+                descricao: document.getElementById('descricaoPagar').value,
+                valor: parseFloat(document.getElementById('valorPagar').value),
+                data_vencimento: document.getElementById('vencimentoPagar').value,
+                categoria: document.getElementById('categoriaPagar').value,
+                observacoes: document.getElementById('observacoesPagar').value
+            };
+            
+            try {
+                const response = await fetch('/api/financeiro/contas-pagar', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(conta)
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalContaPagar')).hide();
+                    document.getElementById('formContaPagar').reset();
+                    loadContasPagar();
+                }
+            } catch (error) {
+                console.error('Erro ao salvar conta a pagar:', error);
+            }
+        }
+
+        async function marcarComoPago(contaId) {
+            try {
+                const response = await fetch(`/api/financeiro/contas-pagar/${contaId}/pagar`, {
+                    method: 'POST',
+                    headers
+                });
+                
+                if (response.ok) {
+                    loadContasPagar();
+                }
+            } catch (error) {
+                console.error('Erro ao marcar como pago:', error);
+            }
+        }
+
+        async function deletarContaPagar(contaId) {
+            if (confirm('Tem certeza que deseja deletar esta conta?')) {
+                try {
+                    const response = await fetch(`/api/financeiro/contas-pagar/${contaId}`, {
+                        method: 'DELETE',
+                        headers
+                    });
+                    
+                    if (response.ok) {
+                        loadContasPagar();
+                    }
+                } catch (error) {
+                    console.error('Erro ao deletar conta a pagar:', error);
+                }
+            }
+        }
+
+        // Funções de CRUD para Contas a Receber
+        async function salvarContaReceber() {
+            const conta = {
+                descricao: document.getElementById('descricaoReceber').value,
+                valor: parseFloat(document.getElementById('valorReceber').value),
+                data_vencimento: document.getElementById('vencimentoReceber').value,
+                categoria: document.getElementById('categoriaReceber').value,
+                observacoes: document.getElementById('observacoesReceber').value
+            };
+            
+            try {
+                const response = await fetch('/api/financeiro/contas-receber', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(conta)
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalContaReceber')).hide();
+                    document.getElementById('formContaReceber').reset();
+                    loadContasReceber();
+                }
+            } catch (error) {
+                console.error('Erro ao salvar conta a receber:', error);
+            }
+        }
+
+        async function marcarComoRecebido(contaId) {
+            try {
+                const response = await fetch(`/api/financeiro/contas-receber/${contaId}/receber`, {
+                    method: 'POST',
+                    headers
+                });
+                
+                if (response.ok) {
+                    loadContasReceber();
+                }
+            } catch (error) {
+                console.error('Erro ao marcar como recebido:', error);
+            }
+        }
+
+        async function deletarContaReceber(contaId) {
+            if (confirm('Tem certeza que deseja deletar esta conta?')) {
+                try {
+                    const response = await fetch(`/api/financeiro/contas-receber/${contaId}`, {
+                        method: 'DELETE',
+                        headers
+                    });
+                    
+                    if (response.ok) {
+                        loadContasReceber();
+                    }
+                } catch (error) {
+                    console.error('Erro ao deletar conta a receber:', error);
+                }
+            }
+        }
+
+        // Funções de CRUD para Metas
+        async function salvarMeta() {
+            const meta = {
+                titulo: document.getElementById('tituloMeta').value,
+                descricao: document.getElementById('descricaoMeta').value,
+                valor_meta: parseFloat(document.getElementById('valorMeta').value),
+                data_inicio: document.getElementById('inicioMeta').value,
+                data_meta: document.getElementById('dataMeta').value,
+                cor: document.getElementById('corMeta').value
+            };
+            
+            try {
+                const response = await fetch('/api/financeiro/metas', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(meta)
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalMeta')).hide();
+                    document.getElementById('formMeta').reset();
+                    loadMetas();
+                }
+            } catch (error) {
+                console.error('Erro ao salvar meta:', error);
+            }
+        }
+
+        async function adicionarValorMeta(metaId) {
+            document.getElementById('metaIdTransacao').value = metaId;
+            document.getElementById('dataTransacao').value = new Date().toISOString().split('T')[0];
+            showModal('modalTransacaoMeta');
+        }
+
+        async function salvarTransacaoMeta() {
+            const transacao = {
+                meta_id: parseInt(document.getElementById('metaIdTransacao').value),
+                valor: parseFloat(document.getElementById('valorTransacao').value),
+                descricao: document.getElementById('descricaoTransacao').value,
+                data_transacao: document.getElementById('dataTransacao').value
+            };
+            
+            try {
+                const response = await fetch(`/api/financeiro/metas/${transacao.meta_id}/transacoes`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(transacao)
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalTransacaoMeta')).hide();
+                    document.getElementById('formTransacaoMeta').reset();
+                    loadMetas();
+                }
+            } catch (error) {
+                console.error('Erro ao salvar transação de meta:', error);
+            }
+        }
+
+        async function deletarMeta(metaId) {
+            if (confirm('Tem certeza que deseja deletar esta meta? Todas as transações relacionadas também serão deletadas.')) {
+                try {
+                    const response = await fetch(`/api/financeiro/metas/${metaId}`, {
+                        method: 'DELETE',
+                        headers
+                    });
+                    
+                    if (response.ok) {
+                        loadMetas();
+                    }
+                } catch (error) {
+                    console.error('Erro ao deletar meta:', error);
+                }
+            }
+        }
+
+        // Funções de CRUD para Investimentos
+        async function salvarInvestimento() {
+            const investimento = {
+                nome: document.getElementById('nomeInvestimento').value,
+                tipo: document.getElementById('tipoInvestimento').value,
+                valor_investido: parseFloat(document.getElementById('valorInvestido').value),
+                valor_atual: parseFloat(document.getElementById('valorAtual').value),
+                data_investimento: document.getElementById('dataInvestimento').value,
+                rentabilidade_anual: parseFloat(document.getElementById('rentabilidadeAnual').value) || null,
+                observacoes: document.getElementById('observacoesInvestimento').value
+            };
+            
+            try {
+                const response = await fetch('/api/financeiro/investimentos', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(investimento)
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalInvestimento')).hide();
+                    document.getElementById('formInvestimento').reset();
+                    loadInvestimentos();
+                }
+            } catch (error) {
+                console.error('Erro ao salvar investimento:', error);
+            }
+        }
+
+        async function deletarInvestimento(investimentoId) {
+            if (confirm('Tem certeza que deseja deletar este investimento?')) {
+                try {
+                    const response = await fetch(`/api/financeiro/investimentos/${investimentoId}`, {
+                        method: 'DELETE',
+                        headers
+                    });
+                    
+                    if (response.ok) {
+                        loadInvestimentos();
+                    }
+                } catch (error) {
+                    console.error('Erro ao deletar investimento:', error);
+                }
+            }
+        }
+
+        // Funções de filtro
+        function filtrarContasPagar() {
+            const status = document.getElementById('filtro-status-pagar').value;
+            const categoria = document.getElementById('filtro-categoria-pagar').value;
+            const mes = document.getElementById('filtro-mes-pagar').value;
+            
+            // Implementar filtros aqui
+            loadContasPagar();
+        }
+
+        function filtrarContasReceber() {
+            const status = document.getElementById('filtro-status-receber').value;
+            const categoria = document.getElementById('filtro-categoria-receber').value;
+            const mes = document.getElementById('filtro-mes-receber').value;
+            
+            // Implementar filtros aqui
+            loadContasReceber();
+        }
+
+        function filtrarInvestimentos() {
+            const tipo = document.getElementById('filtro-tipo-investimento').value;
+            const ativo = document.getElementById('filtro-status-investimento').value;
+            
+            // Implementar filtros aqui
+            loadInvestimentos();
+        }
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar se há token
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            // Carregar dashboard inicial
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>
+
