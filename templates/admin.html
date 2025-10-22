@@ -9,10 +9,16 @@
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">Gerenciar Usuários</h6>
-                <button class="btn btn-primary btn-sm" onclick="refreshUsers()">
-                    <i class="fas fa-sync me-2"></i>
-                    Atualizar
-                </button>
+                <div>
+                    <a href="/cadastrar-usuario" class="btn btn-success btn-sm me-2">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Cadastrar Usuário
+                    </a>
+                    <button class="btn btn-primary btn-sm" onclick="refreshUsers()">
+                        <i class="fas fa-sync me-2"></i>
+                        Atualizar
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -95,6 +101,12 @@
                             <option value="true">Ativo</option>
                             <option value="false">Inativo</option>
                         </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label">Nova Senha</label>
+                        <input type="password" class="form-control" id="editPassword" name="password" placeholder="Deixe em branco para não alterar">
+                        <small class="form-text text-muted">Mínimo 6 caracteres. Deixe em branco para manter a senha atual.</small>
                     </div>
                 </form>
             </div>
@@ -185,6 +197,7 @@
                 document.getElementById('editBio').value = user.bio || '';
                 document.getElementById('editRole').value = user.role;
                 document.getElementById('editStatus').value = user.is_active.toString();
+                document.getElementById('editPassword').value = ''; // Limpar campo de senha
                 
                 // Mostrar modal
                 const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
@@ -246,6 +259,23 @@
                     },
                     body: JSON.stringify({ is_active: data.is_active })
                 });
+                
+                // Atualizar senha se fornecida
+                if (data.password && data.password.trim() !== '') {
+                    if (data.password.length < 6) {
+                        alert('A senha deve ter pelo menos 6 caracteres');
+                        return;
+                    }
+                    
+                    await fetch(`/users/${userId}/password`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ password: data.password })
+                    });
+                }
                 
                 alert('Usuário atualizado com sucesso!');
                 bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();

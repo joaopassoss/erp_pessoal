@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from database import get_db
 from models import User
-from schemas import UserResponse, UserUpdate, UserRoleUpdate, UserStatusUpdate
+from schemas import UserResponse, UserUpdate, UserRoleUpdate, UserStatusUpdate, UserPasswordUpdate
 from auth import get_current_active_user, require_admin
 from config import ROLES, UPLOAD_DIR, MAX_FILE_SIZE, ALLOWED_EXTENSIONS
 import os
@@ -180,3 +180,23 @@ def delete_profile_picture(
     db.commit()
     
     return {"message": "Foto de perfil removida com sucesso"}
+
+@router.put("/{user_id}/password", response_model=UserResponse)
+def update_user_password(
+    user_id: int,
+    password_update: UserPasswordUpdate,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Altera a senha de um usuário (apenas admin)"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Criptografar nova senha
+    from auth import get_password_hash
+    user.hashed_password = get_password_hash(password_update.password)
+    
+    db.commit()
+    db.refresh(user)
+    return user

@@ -65,6 +65,18 @@
                                 Painel Admin
                             </a>
                         </li>
+                        <li class="nav-item" id="cadastrar-usuario-panel" style="display: none;">
+                            <a class="nav-link" href="/cadastrar-usuario">
+                                <i class="fas fa-user-plus me-2"></i>
+                                Cadastrar Usuário
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/financeiro">
+                                <i class="fas fa-wallet me-2"></i>
+                                Financeiro
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#" onclick="logout()">
                                 <i class="fas fa-sign-out-alt me-2"></i>
@@ -131,6 +143,7 @@
                     
                     if (user.role === 'admin') {
                         document.getElementById('admin-panel').style.display = 'block';
+                        document.getElementById('cadastrar-usuario-panel').style.display = 'block';
                     }
                 } else {
                     localStorage.removeItem('token');

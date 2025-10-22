@@ -52,6 +52,9 @@ class UserRoleUpdate(BaseModel):
 class UserStatusUpdate(BaseModel):
     is_active: bool
 
+class UserPasswordUpdate(BaseModel):
+    password: str
+
 # Schemas para Contas a Pagar
 class ContaPagarBase(BaseModel):
     descricao: str

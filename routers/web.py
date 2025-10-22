@@ -37,6 +37,11 @@ async def financeiro_page(request: Request):
     """Página do módulo financeiro"""
     return templates.TemplateResponse("financeiro.html", {"request": request})
 
+@router.get("/cadastrar-usuario", response_class=HTMLResponse)
+async def cadastrar_usuario_page(request: Request):
+    """Página de cadastro de usuários"""
+    return templates.TemplateResponse("cadastrar_usuario.html", {"request": request})
+
 @router.get("/test", response_class=HTMLResponse)
 async def test_page(request: Request):
     """Página de teste do login"""
