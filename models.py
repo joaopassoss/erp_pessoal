@@ -80,10 +80,18 @@ class ContaPagar(Base):
     categoria = Column(Enum(CategoriaConta), nullable=False)
     status = Column(Enum(StatusConta), default=StatusConta.PENDENTE)
     observacoes = Column(Text, nullable=True)
+    # Campos para parcelamento
+    is_parcelada = Column(Boolean, default=False)
+    parcela_atual = Column(Integer, nullable=True)  # Número da parcela atual (1, 2, 3...)
+    total_parcelas = Column(Integer, nullable=True)  # Total de parcelas
+    valor_parcela = Column(Float, nullable=True)  # Valor de cada parcela
+    parcela_original_id = Column(Integer, ForeignKey("contas_pagar.id"), nullable=True)  # ID da conta original (primeira parcela)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     user = relationship("User", back_populates="contas_pagar")
+    # Relacionamento para parcelas
+    parcelas = relationship("ContaPagar", backref="conta_original", remote_side=[id])
 
 # Modelo para Contas a Receber
 class ContaReceber(Base):

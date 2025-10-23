@@ -16,8 +16,8 @@ def main():
     print("   ✅ Painel administrativo")
     print("   ✅ Interface web responsiva")
     print()
-    print("🌐 Servidor será iniciado em: http://localhost:80")
-    print("📚 Documentação da API: http://localhost:80/docs")
+    print("🌐 Servidor será iniciado em: http://localhost:8000")
+    print("📚 Documentação da API: http://localhost:8000/docs")
     print("👤 Usuário admin padrão: admin@erp.com / admin123")
     print()
     
@@ -30,7 +30,7 @@ def main():
         uvicorn.run(
             "main:app",
             host="0.0.0.0",
-            port=80,
+            port=8000,
             reload=True,
             log_level="info"
         )

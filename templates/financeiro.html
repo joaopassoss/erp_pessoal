@@ -195,9 +195,14 @@
                 <div id="contas-pagar-section" class="content-section" style="display: none;">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2><i class="fas fa-credit-card me-2"></i>Contas a Pagar</h2>
-                        <button class="btn btn-primary" onclick="showModal('modalContaPagar')">
-                            <i class="fas fa-plus me-2"></i>Nova Conta
-                        </button>
+                        <div>
+                            <button class="btn btn-primary me-2" onclick="showModal('modalContaPagar')">
+                                <i class="fas fa-plus me-2"></i>Nova Conta
+                            </button>
+                            <button class="btn btn-success" onclick="showModal('modalContaParcelada')">
+                                <i class="fas fa-calendar-alt me-2"></i>Conta Parcelada
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Filtros -->
@@ -458,7 +463,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Valor</label>
-                            <input type="number" class="form-control" id="valorPagar" step="0.01" required>
+                            <input type="text" class="form-control" id="valorPagar" placeholder="R$ 0,00" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Data de Vencimento</label>
@@ -506,7 +511,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Valor</label>
-                            <input type="number" class="form-control" id="valorReceber" step="0.01" required>
+                            <input type="text" class="form-control" id="valorReceber" placeholder="R$ 0,00" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Data de Vencimento</label>
@@ -538,6 +543,87 @@
         </div>
     </div>
 
+    <!-- Modal Conta Parcelada -->
+    <div class="modal fade" id="modalContaParcelada" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nova Conta Parcelada</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formContaParcelada">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Descrição</label>
+                                    <input type="text" class="form-control" id="descricaoParcelada" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Categoria</label>
+                                    <select class="form-select" id="categoriaParcelada" required>
+                                        <option value="alimentacao">Alimentação</option>
+                                        <option value="transporte">Transporte</option>
+                                        <option value="moradia">Moradia</option>
+                                        <option value="saude">Saúde</option>
+                                        <option value="educacao">Educação</option>
+                                        <option value="lazer">Lazer</option>
+                                        <option value="outros">Outros</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Valor Total</label>
+                                    <input type="text" class="form-control" id="valorTotalParcelada" placeholder="R$ 0,00" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Número de Parcelas</label>
+                                    <input type="number" class="form-control" id="totalParcelas" min="2" max="60" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Valor da Parcela</label>
+                                    <input type="text" class="form-control" id="valorParcelaCalculado" placeholder="R$ 0,00" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Data da Primeira Parcela</label>
+                                    <input type="date" class="form-control" id="dataPrimeiraParcela" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Observações</label>
+                                    <textarea class="form-control" id="observacoesParcelada" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Prévia das Parcelas:</strong>
+                            <div id="previaParcelas" class="mt-2"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="salvarContaParcelada()">Criar Parcelas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Meta Financeira -->
     <div class="modal fade" id="modalMeta" tabindex="-1">
         <div class="modal-dialog">
@@ -558,7 +644,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Valor da Meta</label>
-                            <input type="number" class="form-control" id="valorMeta" step="0.01" required>
+                            <input type="text" class="form-control" id="valorMeta" placeholder="R$ 0,00" required>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
@@ -619,13 +705,13 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Valor Investido</label>
-                                    <input type="number" class="form-control" id="valorInvestido" step="0.01" required>
+                                    <input type="text" class="form-control" id="valorInvestido" placeholder="R$ 0,00" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Valor Atual</label>
-                                    <input type="number" class="form-control" id="valorAtual" step="0.01" required>
+                                    <input type="text" class="form-control" id="valorAtual" placeholder="R$ 0,00" required>
                                 </div>
                             </div>
                         </div>
@@ -651,6 +737,250 @@
         </div>
     </div>
 
+    <!-- Modal Editar Conta a Pagar -->
+    <div class="modal fade" id="modalEditarContaPagar" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Conta a Pagar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditarContaPagar">
+                        <input type="hidden" id="editarContaPagarId">
+                        <div class="mb-3">
+                            <label class="form-label">Descrição</label>
+                            <input type="text" class="form-control" id="editarDescricaoPagar" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Valor</label>
+                            <input type="text" class="form-control" id="editarValorPagar" placeholder="R$ 0,00" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data de Vencimento</label>
+                            <input type="date" class="form-control" id="editarVencimentoPagar" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Categoria</label>
+                            <select class="form-select" id="editarCategoriaPagar" required>
+                                <option value="alimentacao">Alimentação</option>
+                                <option value="transporte">Transporte</option>
+                                <option value="moradia">Moradia</option>
+                                <option value="saude">Saúde</option>
+                                <option value="educacao">Educação</option>
+                                <option value="lazer">Lazer</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="editarStatusPagar" required>
+                                <option value="pendente">Pendente</option>
+                                <option value="pago">Pago</option>
+                                <option value="vencido">Vencido</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observações</label>
+                            <textarea class="form-control" id="editarObservacoesPagar" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarEdicaoContaPagar()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Conta a Receber -->
+    <div class="modal fade" id="modalEditarContaReceber" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Conta a Receber</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditarContaReceber">
+                        <input type="hidden" id="editarContaReceberId">
+                        <div class="mb-3">
+                            <label class="form-label">Descrição</label>
+                            <input type="text" class="form-control" id="editarDescricaoReceber" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Valor</label>
+                            <input type="text" class="form-control" id="editarValorReceber" placeholder="R$ 0,00" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data de Vencimento</label>
+                            <input type="date" class="form-control" id="editarVencimentoReceber" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Categoria</label>
+                            <select class="form-select" id="editarCategoriaReceber" required>
+                                <option value="alimentacao">Alimentação</option>
+                                <option value="transporte">Transporte</option>
+                                <option value="moradia">Moradia</option>
+                                <option value="saude">Saúde</option>
+                                <option value="educacao">Educação</option>
+                                <option value="lazer">Lazer</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="editarStatusReceber" required>
+                                <option value="pendente">Pendente</option>
+                                <option value="pago">Recebido</option>
+                                <option value="vencido">Vencido</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observações</label>
+                            <textarea class="form-control" id="editarObservacoesReceber" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarEdicaoContaReceber()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Meta -->
+    <div class="modal fade" id="modalEditarMeta" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Meta Financeira</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditarMeta">
+                        <input type="hidden" id="editarMetaId">
+                        <div class="mb-3">
+                            <label class="form-label">Título</label>
+                            <input type="text" class="form-control" id="editarTituloMeta" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descrição</label>
+                            <textarea class="form-control" id="editarDescricaoMeta" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Valor da Meta</label>
+                            <input type="text" class="form-control" id="editarValorMeta" placeholder="R$ 0,00" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Data de Início</label>
+                                    <input type="date" class="form-control" id="editarInicioMeta" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Data da Meta</label>
+                                    <input type="date" class="form-control" id="editarDataMeta" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="editarStatusMeta" required>
+                                <option value="ativa">Ativa</option>
+                                <option value="pausada">Pausada</option>
+                                <option value="concluida">Concluída</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cor</label>
+                            <input type="color" class="form-control form-control-color" id="editarCorMeta" value="#3B82F6">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarEdicaoMeta()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Investimento -->
+    <div class="modal fade" id="modalEditarInvestimento" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Investimento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditarInvestimento">
+                        <input type="hidden" id="editarInvestimentoId">
+                        <div class="mb-3">
+                            <label class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="editarNomeInvestimento" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tipo</label>
+                            <select class="form-select" id="editarTipoInvestimento" required>
+                                <option value="poupanca">Poupança</option>
+                                <option value="cdb">CDB</option>
+                                <option value="lci">LCI</option>
+                                <option value="lca">LCA</option>
+                                <option value="fundos">Fundos</option>
+                                <option value="acoes">Ações</option>
+                                <option value="cripto">Cripto</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Valor Investido</label>
+                                    <input type="text" class="form-control" id="editarValorInvestido" placeholder="R$ 0,00" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Valor Atual</label>
+                                    <input type="text" class="form-control" id="editarValorAtual" placeholder="R$ 0,00" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data do Investimento</label>
+                            <input type="date" class="form-control" id="editarDataInvestimento" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rentabilidade Anual (%)</label>
+                            <input type="number" class="form-control" id="editarRentabilidadeAnual" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="editarAtivoInvestimento" required>
+                                <option value="true">Ativo</option>
+                                <option value="false">Inativo</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observações</label>
+                            <textarea class="form-control" id="editarObservacoesInvestimento" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarEdicaoInvestimento()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Transação de Meta -->
     <div class="modal fade" id="modalTransacaoMeta" tabindex="-1">
         <div class="modal-dialog">
@@ -664,7 +994,7 @@
                         <input type="hidden" id="metaIdTransacao">
                         <div class="mb-3">
                             <label class="form-label">Valor</label>
-                            <input type="number" class="form-control" id="valorTransacao" step="0.01" required>
+                            <input type="text" class="form-control" id="valorTransacao" placeholder="R$ 0,00" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Descrição</label>
@@ -751,6 +1081,44 @@
                 style: 'currency',
                 currency: 'BRL'
             }).format(valor);
+        }
+
+        // Função para aplicar máscara de moeda em inputs
+        function aplicarMascaraMoeda(input) {
+            input.addEventListener('input', function(e) {
+                let valor = e.target.value.replace(/\D/g, '');
+                if (valor.length > 0) {
+                    valor = (parseInt(valor) / 100).toFixed(2);
+                    valor = valor.replace('.', ',');
+                    valor = valor.replace(/(\d)(\d{3})(\d{3}),/g, '$1.$2.$3,');
+                    valor = valor.replace(/(\d)(\d{3}),/g, '$1.$2,');
+                    e.target.value = 'R$ ' + valor;
+                }
+            });
+
+            input.addEventListener('blur', function(e) {
+                if (e.target.value === 'R$ ') {
+                    e.target.value = '';
+                }
+            });
+
+            input.addEventListener('focus', function(e) {
+                if (e.target.value === '') {
+                    e.target.value = 'R$ ';
+                }
+            });
+        }
+
+        // Função para converter valor formatado para número
+        function converterMoedaParaNumero(valorFormatado) {
+            if (!valorFormatado) return 0;
+            return parseFloat(valorFormatado.replace('R$ ', '').replace(/\./g, '').replace(',', '.')) || 0;
+        }
+
+        // Função para formatar valor para input
+        function formatarValorParaInput(valor) {
+            if (!valor || valor === 0) return '';
+            return formatarMoeda(valor);
         }
 
         // Função para formatar data
@@ -867,8 +1235,16 @@
                         <div class="card-body">
                             <div class="row align-items-center">
                                 <div class="col-md-6">
-                                    <h6 class="mb-1">${conta.descricao}</h6>
+                                    <h6 class="mb-1">
+                                        ${conta.descricao}
+                                        ${conta.is_parcelada ? 
+                                            `<span class="badge bg-info ms-2">Parcela ${conta.parcela_atual}/${conta.total_parcelas}</span>` : ''
+                                        }
+                                    </h6>
                                     <small class="text-muted">${conta.categoria} • Vence em ${formatarData(conta.data_vencimento)}</small>
+                                    ${conta.is_parcelada ? 
+                                        `<small class="text-muted d-block">Valor da parcela: ${formatarMoeda(conta.valor_parcela)}</small>` : ''
+                                    }
                                 </div>
                                 <div class="col-md-3 text-center">
                                     <h5 class="mb-0">${formatarMoeda(conta.valor)}</h5>
@@ -879,6 +1255,11 @@
                                         <button class="btn btn-sm btn-outline-primary" onclick="editarContaPagar(${conta.id})">
                                             <i class="fas fa-edit"></i>
                                         </button>
+                                        ${conta.is_parcelada && conta.status === 'pendente' ? 
+                                            `<button class="btn btn-sm btn-outline-warning" onclick="anteciparParcela(${conta.id})" title="Antecipar Parcela">
+                                                <i class="fas fa-calendar-plus"></i>
+                                            </button>` : ''
+                                        }
                                         ${conta.status === 'pendente' ? 
                                             `<button class="btn btn-sm btn-outline-success" onclick="marcarComoPago(${conta.id})">
                                                 <i class="fas fa-check"></i>
@@ -982,7 +1363,10 @@
                                             Meta: ${formatarData(meta.data_meta)}
                                         </small>
                                         <div class="btn-group">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="adicionarValorMeta(${meta.id})">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="editarMeta(${meta.id})">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="adicionarValorMeta(${meta.id})">
                                                 <i class="fas fa-plus"></i>
                                             </button>
                                             <button class="btn btn-sm btn-outline-secondary" onclick="verTransacoesMeta(${meta.id})">
@@ -1148,7 +1532,7 @@
         async function salvarContaPagar() {
             const conta = {
                 descricao: document.getElementById('descricaoPagar').value,
-                valor: parseFloat(document.getElementById('valorPagar').value),
+                valor: converterMoedaParaNumero(document.getElementById('valorPagar').value),
                 data_vencimento: document.getElementById('vencimentoPagar').value,
                 categoria: document.getElementById('categoriaPagar').value,
                 observacoes: document.getElementById('observacoesPagar').value
@@ -1168,6 +1552,123 @@
                 }
             } catch (error) {
                 console.error('Erro ao salvar conta a pagar:', error);
+            }
+        }
+
+        // Funções para Conta Parcelada
+        function calcularValorParcela() {
+            const valorTotal = converterMoedaParaNumero(document.getElementById('valorTotalParcelada').value);
+            const totalParcelas = parseInt(document.getElementById('totalParcelas').value);
+            
+            if (valorTotal && totalParcelas) {
+                const valorParcela = valorTotal / totalParcelas;
+                document.getElementById('valorParcelaCalculado').value = formatarValorParaInput(valorParcela);
+                gerarPreviaParcelas();
+            }
+        }
+
+        function gerarPreviaParcelas() {
+            const valorTotal = converterMoedaParaNumero(document.getElementById('valorTotalParcelada').value);
+            const totalParcelas = parseInt(document.getElementById('totalParcelas').value);
+            const dataPrimeira = document.getElementById('dataPrimeiraParcela').value;
+            
+            if (valorTotal && totalParcelas && dataPrimeira) {
+                const valorParcela = valorTotal / totalParcelas;
+                const dataInicial = new Date(dataPrimeira);
+                
+                let previa = '<div class="row">';
+                for (let i = 0; i < Math.min(totalParcelas, 6); i++) {
+                    const dataVencimento = new Date(dataInicial);
+                    dataVencimento.setMonth(dataVencimento.getMonth() + i);
+                    
+                    previa += `
+                        <div class="col-md-6 mb-2">
+                            <small class="text-muted">
+                                Parcela ${i + 1}: ${formatarValorParaInput(valorParcela)} - 
+                                ${dataVencimento.toLocaleDateString('pt-BR')}
+                            </small>
+                        </div>
+                    `;
+                }
+                
+                if (totalParcelas > 6) {
+                    previa += `
+                        <div class="col-12">
+                            <small class="text-muted">... e mais ${totalParcelas - 6} parcelas</small>
+                        </div>
+                    `;
+                }
+                
+                previa += '</div>';
+                document.getElementById('previaParcelas').innerHTML = previa;
+            }
+        }
+
+        async function salvarContaParcelada() {
+            const conta = {
+                descricao: document.getElementById('descricaoParcelada').value,
+                valor_total: converterMoedaParaNumero(document.getElementById('valorTotalParcelada').value),
+                data_vencimento_primeira: document.getElementById('dataPrimeiraParcela').value,
+                categoria: document.getElementById('categoriaParcelada').value,
+                total_parcelas: parseInt(document.getElementById('totalParcelas').value),
+                observacoes: document.getElementById('observacoesParcelada').value
+            };
+            
+            try {
+                const response = await fetch('/api/financeiro/contas-pagar/parcelada', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(conta)
+                });
+                
+                if (response.ok) {
+                    const parcelas = await response.json();
+                    bootstrap.Modal.getInstance(document.getElementById('modalContaParcelada')).hide();
+                    document.getElementById('formContaParcelada').reset();
+                    document.getElementById('previaParcelas').innerHTML = '';
+                    loadContasPagar();
+                    alert(`Conta parcelada criada com sucesso! ${parcelas.length} parcelas foram geradas.`);
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao criar conta parcelada: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Erro ao salvar conta parcelada:', error);
+                alert('Erro ao criar conta parcelada');
+            }
+        }
+
+        function verParcelas(contaId) {
+            // Implementar visualização das parcelas
+            window.location.href = `/financeiro/parcelas/${contaId}`;
+        }
+
+        async function anteciparParcela(parcelaId) {
+            const novaData = prompt('Digite a nova data de vencimento (DD/MM/AAAA):');
+            if (novaData) {
+                try {
+                    const [dia, mes, ano] = novaData.split('/');
+                    const dataFormatada = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+                    
+                    const response = await fetch(`/api/financeiro/contas-pagar/${parcelaId}/antecipar`, {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify({
+                            parcela_id: parcelaId,
+                            nova_data_vencimento: dataFormatada
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        loadContasPagar();
+                        alert('Parcela antecipada com sucesso!');
+                    } else {
+                        alert('Erro ao antecipar parcela');
+                    }
+                } catch (error) {
+                    console.error('Erro ao antecipar parcela:', error);
+                    alert('Erro ao antecipar parcela');
+                }
             }
         }
 
@@ -1207,7 +1708,7 @@
         async function salvarContaReceber() {
             const conta = {
                 descricao: document.getElementById('descricaoReceber').value,
-                valor: parseFloat(document.getElementById('valorReceber').value),
+                valor: converterMoedaParaNumero(document.getElementById('valorReceber').value),
                 data_vencimento: document.getElementById('vencimentoReceber').value,
                 categoria: document.getElementById('categoriaReceber').value,
                 observacoes: document.getElementById('observacoesReceber').value
@@ -1267,7 +1768,7 @@
             const meta = {
                 titulo: document.getElementById('tituloMeta').value,
                 descricao: document.getElementById('descricaoMeta').value,
-                valor_meta: parseFloat(document.getElementById('valorMeta').value),
+                valor_meta: converterMoedaParaNumero(document.getElementById('valorMeta').value),
                 data_inicio: document.getElementById('inicioMeta').value,
                 data_meta: document.getElementById('dataMeta').value,
                 cor: document.getElementById('corMeta').value
@@ -1299,7 +1800,7 @@
         async function salvarTransacaoMeta() {
             const transacao = {
                 meta_id: parseInt(document.getElementById('metaIdTransacao').value),
-                valor: parseFloat(document.getElementById('valorTransacao').value),
+                valor: converterMoedaParaNumero(document.getElementById('valorTransacao').value),
                 descricao: document.getElementById('descricaoTransacao').value,
                 data_transacao: document.getElementById('dataTransacao').value
             };
@@ -1343,8 +1844,8 @@
             const investimento = {
                 nome: document.getElementById('nomeInvestimento').value,
                 tipo: document.getElementById('tipoInvestimento').value,
-                valor_investido: parseFloat(document.getElementById('valorInvestido').value),
-                valor_atual: parseFloat(document.getElementById('valorAtual').value),
+                valor_investido: converterMoedaParaNumero(document.getElementById('valorInvestido').value),
+                valor_atual: converterMoedaParaNumero(document.getElementById('valorAtual').value),
                 data_investimento: document.getElementById('dataInvestimento').value,
                 rentabilidade_anual: parseFloat(document.getElementById('rentabilidadeAnual').value) || null,
                 observacoes: document.getElementById('observacoesInvestimento').value
@@ -1411,6 +1912,254 @@
             loadInvestimentos();
         }
 
+        // ==================== FUNÇÕES DE EDIÇÃO ====================
+        
+        // Editar Conta a Pagar
+        async function editarContaPagar(contaId) {
+            try {
+                const response = await fetch(`/api/financeiro/contas-pagar/${contaId}`, { headers });
+                const conta = await response.json();
+                
+                // Preencher modal
+                document.getElementById('editarContaPagarId').value = conta.id;
+                document.getElementById('editarDescricaoPagar').value = conta.descricao;
+                document.getElementById('editarValorPagar').value = formatarValorParaInput(conta.valor);
+                document.getElementById('editarVencimentoPagar').value = conta.data_vencimento;
+                document.getElementById('editarCategoriaPagar').value = conta.categoria;
+                document.getElementById('editarStatusPagar').value = conta.status;
+                document.getElementById('editarObservacoesPagar').value = conta.observacoes || '';
+                
+                // Mostrar modal
+                const modal = new bootstrap.Modal(document.getElementById('modalEditarContaPagar'));
+                modal.show();
+            } catch (error) {
+                console.error('Erro ao carregar conta a pagar:', error);
+                alert('Erro ao carregar dados da conta');
+            }
+        }
+        
+        async function salvarEdicaoContaPagar() {
+            const contaId = document.getElementById('editarContaPagarId').value;
+            const conta = {
+                descricao: document.getElementById('editarDescricaoPagar').value,
+                valor: converterMoedaParaNumero(document.getElementById('editarValorPagar').value),
+                data_vencimento: document.getElementById('editarVencimentoPagar').value,
+                categoria: document.getElementById('editarCategoriaPagar').value,
+                status: document.getElementById('editarStatusPagar').value,
+                observacoes: document.getElementById('editarObservacoesPagar').value
+            };
+            
+            try {
+                const response = await fetch(`/api/financeiro/contas-pagar/${contaId}`, {
+                    method: 'PUT',
+                    headers,
+                    body: JSON.stringify(conta)
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalEditarContaPagar')).hide();
+                    loadContasPagar();
+                    alert('Conta atualizada com sucesso!');
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao atualizar conta: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar conta a pagar:', error);
+                alert('Erro de conexão: ' + error.message);
+            }
+        }
+        
+        // Editar Conta a Receber
+        async function editarContaReceber(contaId) {
+            try {
+                const response = await fetch(`/api/financeiro/contas-receber/${contaId}`, { headers });
+                const conta = await response.json();
+                
+                // Preencher modal
+                document.getElementById('editarContaReceberId').value = conta.id;
+                document.getElementById('editarDescricaoReceber').value = conta.descricao;
+                document.getElementById('editarValorReceber').value = formatarValorParaInput(conta.valor);
+                document.getElementById('editarVencimentoReceber').value = conta.data_vencimento;
+                document.getElementById('editarCategoriaReceber').value = conta.categoria;
+                document.getElementById('editarStatusReceber').value = conta.status;
+                document.getElementById('editarObservacoesReceber').value = conta.observacoes || '';
+                
+                // Mostrar modal
+                const modal = new bootstrap.Modal(document.getElementById('modalEditarContaReceber'));
+                modal.show();
+            } catch (error) {
+                console.error('Erro ao carregar conta a receber:', error);
+                alert('Erro ao carregar dados da conta');
+            }
+        }
+        
+        async function salvarEdicaoContaReceber() {
+            const contaId = document.getElementById('editarContaReceberId').value;
+            const conta = {
+                descricao: document.getElementById('editarDescricaoReceber').value,
+                valor: converterMoedaParaNumero(document.getElementById('editarValorReceber').value),
+                data_vencimento: document.getElementById('editarVencimentoReceber').value,
+                categoria: document.getElementById('editarCategoriaReceber').value,
+                status: document.getElementById('editarStatusReceber').value,
+                observacoes: document.getElementById('editarObservacoesReceber').value
+            };
+            
+            try {
+                const response = await fetch(`/api/financeiro/contas-receber/${contaId}`, {
+                    method: 'PUT',
+                    headers,
+                    body: JSON.stringify(conta)
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalEditarContaReceber')).hide();
+                    loadContasReceber();
+                    alert('Conta atualizada com sucesso!');
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao atualizar conta: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar conta a receber:', error);
+                alert('Erro de conexão: ' + error.message);
+            }
+        }
+        
+        // Editar Meta
+        async function editarMeta(metaId) {
+            try {
+                const response = await fetch(`/api/financeiro/metas/${metaId}`, { headers });
+                const meta = await response.json();
+                
+                // Preencher modal
+                document.getElementById('editarMetaId').value = meta.id;
+                document.getElementById('editarTituloMeta').value = meta.titulo;
+                document.getElementById('editarDescricaoMeta').value = meta.descricao || '';
+                document.getElementById('editarValorMeta').value = formatarValorParaInput(meta.valor_meta);
+                document.getElementById('editarInicioMeta').value = meta.data_inicio;
+                document.getElementById('editarDataMeta').value = meta.data_meta;
+                document.getElementById('editarStatusMeta').value = meta.status;
+                document.getElementById('editarCorMeta').value = meta.cor || '#3B82F6';
+                
+                // Mostrar modal
+                const modal = new bootstrap.Modal(document.getElementById('modalEditarMeta'));
+                modal.show();
+            } catch (error) {
+                console.error('Erro ao carregar meta:', error);
+                alert('Erro ao carregar dados da meta');
+            }
+        }
+        
+        async function salvarEdicaoMeta() {
+            const metaId = document.getElementById('editarMetaId').value;
+            const meta = {
+                titulo: document.getElementById('editarTituloMeta').value,
+                descricao: document.getElementById('editarDescricaoMeta').value,
+                valor_meta: converterMoedaParaNumero(document.getElementById('editarValorMeta').value),
+                data_inicio: document.getElementById('editarInicioMeta').value,
+                data_meta: document.getElementById('editarDataMeta').value,
+                status: document.getElementById('editarStatusMeta').value,
+                cor: document.getElementById('editarCorMeta').value
+            };
+            
+            try {
+                const response = await fetch(`/api/financeiro/metas/${metaId}`, {
+                    method: 'PUT',
+                    headers,
+                    body: JSON.stringify(meta)
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalEditarMeta')).hide();
+                    loadMetas();
+                    alert('Meta atualizada com sucesso!');
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao atualizar meta: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar meta:', error);
+                alert('Erro de conexão: ' + error.message);
+            }
+        }
+        
+        // Editar Investimento
+        async function editarInvestimento(investimentoId) {
+            try {
+                const response = await fetch(`/api/financeiro/investimentos/${investimentoId}`, { headers });
+                const investimento = await response.json();
+                
+                // Preencher modal
+                document.getElementById('editarInvestimentoId').value = investimento.id;
+                document.getElementById('editarNomeInvestimento').value = investimento.nome;
+                document.getElementById('editarTipoInvestimento').value = investimento.tipo;
+                document.getElementById('editarValorInvestido').value = formatarValorParaInput(investimento.valor_investido);
+                document.getElementById('editarValorAtual').value = formatarValorParaInput(investimento.valor_atual);
+                document.getElementById('editarDataInvestimento').value = investimento.data_investimento;
+                document.getElementById('editarRentabilidadeAnual').value = investimento.rentabilidade_anual || '';
+                document.getElementById('editarAtivoInvestimento').value = investimento.ativo.toString();
+                document.getElementById('editarObservacoesInvestimento').value = investimento.observacoes || '';
+                
+                // Mostrar modal
+                const modal = new bootstrap.Modal(document.getElementById('modalEditarInvestimento'));
+                modal.show();
+            } catch (error) {
+                console.error('Erro ao carregar investimento:', error);
+                alert('Erro ao carregar dados do investimento');
+            }
+        }
+        
+        async function salvarEdicaoInvestimento() {
+            const investimentoId = document.getElementById('editarInvestimentoId').value;
+            const investimento = {
+                nome: document.getElementById('editarNomeInvestimento').value,
+                tipo: document.getElementById('editarTipoInvestimento').value,
+                valor_investido: converterMoedaParaNumero(document.getElementById('editarValorInvestido').value),
+                valor_atual: converterMoedaParaNumero(document.getElementById('editarValorAtual').value),
+                data_investimento: document.getElementById('editarDataInvestimento').value,
+                rentabilidade_anual: parseFloat(document.getElementById('editarRentabilidadeAnual').value) || null,
+                ativo: document.getElementById('editarAtivoInvestimento').value === 'true',
+                observacoes: document.getElementById('editarObservacoesInvestimento').value
+            };
+            
+            try {
+                const response = await fetch(`/api/financeiro/investimentos/${investimentoId}`, {
+                    method: 'PUT',
+                    headers,
+                    body: JSON.stringify(investimento)
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalEditarInvestimento')).hide();
+                    loadInvestimentos();
+                    alert('Investimento atualizado com sucesso!');
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao atualizar investimento: ' + error.detail);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar investimento:', error);
+                alert('Erro de conexão: ' + error.message);
+            }
+        }
+
+        // Aplicar máscaras de moeda em todos os inputs de valor
+        function aplicarMascarasMoeda() {
+            // Campos de criação
+            const camposValor = [
+                'valorPagar', 'valorReceber', 'valorMeta', 'valorInvestido', 'valorAtual', 'valorTransacao',
+                'editarValorPagar', 'editarValorReceber', 'editarValorMeta', 'editarValorInvestido', 'editarValorAtual'
+            ];
+            
+            camposValor.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    aplicarMascaraMoeda(input);
+                }
+            });
+        }
+
         // Inicializar página
         document.addEventListener('DOMContentLoaded', function() {
             // Verificar se há token
@@ -1418,6 +2167,14 @@
                 window.location.href = '/login';
                 return;
             }
+            
+            // Aplicar máscaras de moeda
+            aplicarMascarasMoeda();
+            
+            // Event listeners para conta parcelada
+            document.getElementById('valorTotalParcelada').addEventListener('input', calcularValorParcela);
+            document.getElementById('totalParcelas').addEventListener('input', calcularValorParcela);
+            document.getElementById('dataPrimeiraParcela').addEventListener('change', gerarPreviaParcelas);
             
             // Carregar dashboard inicial
             loadDashboard();

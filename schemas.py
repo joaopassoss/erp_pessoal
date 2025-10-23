@@ -64,7 +64,10 @@ class ContaPagarBase(BaseModel):
     observacoes: Optional[str] = None
 
 class ContaPagarCreate(ContaPagarBase):
-    pass
+    # Campos para parcelamento
+    is_parcelada: Optional[bool] = False
+    total_parcelas: Optional[int] = None
+    valor_parcela: Optional[float] = None
 
 class ContaPagarUpdate(BaseModel):
     descricao: Optional[str] = None
@@ -80,11 +83,31 @@ class ContaPagarResponse(ContaPagarBase):
     user_id: int
     data_pagamento: Optional[date] = None
     status: StatusConta
+    # Campos de parcelamento
+    is_parcelada: bool
+    parcela_atual: Optional[int] = None
+    total_parcelas: Optional[int] = None
+    valor_parcela: Optional[float] = None
+    parcela_original_id: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True
+
+# Schema para criar conta parcelada
+class ContaPagarParceladaCreate(BaseModel):
+    descricao: str
+    valor_total: float
+    data_vencimento_primeira: date
+    categoria: CategoriaConta
+    total_parcelas: int
+    observacoes: Optional[str] = None
+
+# Schema para antecipar parcela
+class AnteciparParcelaRequest(BaseModel):
+    parcela_id: int
+    nova_data_vencimento: date
 
 # Schemas para Contas a Receber
 class ContaReceberBase(BaseModel):

@@ -9,6 +9,7 @@ from models import (
 )
 from schemas import (
     ContaPagarCreate, ContaPagarUpdate, ContaPagarResponse,
+    ContaPagarParceladaCreate, AnteciparParcelaRequest,
     ContaReceberCreate, ContaReceberUpdate, ContaReceberResponse,
     MetaFinanceiraCreate, MetaFinanceiraUpdate, MetaFinanceiraResponse,
     TransacaoMetaCreate, TransacaoMetaResponse,
@@ -144,6 +145,147 @@ def marcar_como_pago(
     
     db.commit()
     return {"message": "Conta marcada como paga"}
+
+@router.post("/contas-pagar/parcelada", response_model=List[ContaPagarResponse])
+def criar_conta_parcelada(
+    conta: ContaPagarParceladaCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Criar conta parcelada com múltiplas parcelas"""
+    from datetime import timedelta
+    
+    # Calcular valor de cada parcela
+    valor_parcela = conta.valor_total / conta.total_parcelas
+    
+    # Criar todas as parcelas
+    parcelas = []
+    for i in range(conta.total_parcelas):
+        # Calcular data de vencimento (incrementar mês)
+        if i == 0:
+            data_vencimento = conta.data_vencimento_primeira
+        else:
+            # Adicionar i meses à data inicial
+            data_vencimento = conta.data_vencimento_primeira
+            for _ in range(i):
+                # Adicionar um mês
+                if data_vencimento.month == 12:
+                    data_vencimento = data_vencimento.replace(year=data_vencimento.year + 1, month=1)
+                else:
+                    data_vencimento = data_vencimento.replace(month=data_vencimento.month + 1)
+        
+        parcela = ContaPagar(
+            user_id=current_user.id,
+            descricao=f"{conta.descricao} - Parcela {i+1}/{conta.total_parcelas}",
+            valor=valor_parcela,
+            data_vencimento=data_vencimento,
+            categoria=conta.categoria,
+            observacoes=conta.observacoes,
+            is_parcelada=True,
+            parcela_atual=i+1,
+            total_parcelas=conta.total_parcelas,
+            valor_parcela=valor_parcela,
+            parcela_original_id=None  # Será definido após criar a primeira parcela
+        )
+        db.add(parcela)
+        db.flush()  # Para obter o ID da primeira parcela
+        
+        # Definir o ID da conta original (primeira parcela)
+        if i == 0:
+            parcela_original_id = parcela.id
+            parcela.parcela_original_id = parcela.id
+        else:
+            parcela.parcela_original_id = parcela_original_id
+        
+        parcelas.append(parcela)
+    
+    db.commit()
+    
+    # Refresh todas as parcelas para retornar com IDs
+    for parcela in parcelas:
+        db.refresh(parcela)
+    
+    return parcelas
+
+@router.get("/contas-pagar/{conta_id}/parcelas", response_model=List[ContaPagarResponse])
+def listar_parcelas(
+    conta_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Listar todas as parcelas de uma conta"""
+    # Buscar a conta original
+    conta_original = db.query(ContaPagar).filter(
+        ContaPagar.id == conta_id,
+        ContaPagar.user_id == current_user.id
+    ).first()
+    
+    if not conta_original:
+        raise HTTPException(status_code=404, detail="Conta não encontrada")
+    
+    # Se for uma parcela, buscar a conta original
+    if conta_original.parcela_original_id and conta_original.parcela_original_id != conta_original.id:
+        conta_original_id = conta_original.parcela_original_id
+    else:
+        conta_original_id = conta_id
+    
+    # Buscar todas as parcelas
+    parcelas = db.query(ContaPagar).filter(
+        ContaPagar.parcela_original_id == conta_original_id,
+        ContaPagar.user_id == current_user.id
+    ).order_by(ContaPagar.parcela_atual).all()
+    
+    return parcelas
+
+@router.put("/contas-pagar/{parcela_id}/antecipar")
+def antecipar_parcela(
+    parcela_id: int,
+    request: AnteciparParcelaRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Antecipar o pagamento de uma parcela"""
+    parcela = db.query(ContaPagar).filter(
+        ContaPagar.id == parcela_id,
+        ContaPagar.user_id == current_user.id
+    ).first()
+    
+    if not parcela:
+        raise HTTPException(status_code=404, detail="Parcela não encontrada")
+    
+    if not parcela.is_parcelada:
+        raise HTTPException(status_code=400, detail="Esta conta não é parcelada")
+    
+    # Atualizar data de vencimento
+    parcela.data_vencimento = request.nova_data_vencimento
+    
+    db.commit()
+    return {"message": "Parcela antecipada com sucesso"}
+
+@router.post("/contas-pagar/{parcela_id}/pagar-parcela")
+def pagar_parcela(
+    parcela_id: int,
+    data_pagamento: Optional[date] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Pagar uma parcela específica"""
+    parcela = db.query(ContaPagar).filter(
+        ContaPagar.id == parcela_id,
+        ContaPagar.user_id == current_user.id
+    ).first()
+    
+    if not parcela:
+        raise HTTPException(status_code=404, detail="Parcela não encontrada")
+    
+    if not parcela.is_parcelada:
+        raise HTTPException(status_code=400, detail="Esta conta não é parcelada")
+    
+    parcela.status = StatusConta.PAGO
+    parcela.data_pagamento = data_pagamento or date.today()
+    
+    db.commit()
+    return {"message": "Parcela paga com sucesso"}
 
 # ==================== CONTAS A RECEBER ====================
 
