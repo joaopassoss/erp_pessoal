@@ -37,6 +37,11 @@ async def financeiro_page(request: Request):
     """Página do módulo financeiro"""
     return templates.TemplateResponse("financeiro.html", {"request": request})
 
+@router.get("/dashboard-mensal", response_class=HTMLResponse)
+async def dashboard_mensal_page(request: Request):
+    """Dashboard mensal consolidado"""
+    return templates.TemplateResponse("dashboard_mensal.html", {"request": request})
+
 @router.get("/cadastrar-usuario", response_class=HTMLResponse)
 async def cadastrar_usuario_page(request: Request):
     """Página de cadastro de usuários"""

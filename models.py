@@ -183,3 +183,30 @@ class ResumoFinanceiro(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     user = relationship("User")
+
+# Modelo para Metas Mensais
+class MetaMensal(Base):
+    __tablename__ = "metas_mensais"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    mes = Column(Integer, nullable=False)
+    ano = Column(Integer, nullable=False)
+    meta_receita = Column(Float, nullable=False)
+    meta_despesa = Column(Float, nullable=False)
+    meta_investimento = Column(Float, nullable=False)
+    meta_poupanca = Column(Float, nullable=False)
+    receita_realizada = Column(Float, default=0.0)
+    despesa_realizada = Column(Float, default=0.0)
+    investimento_realizado = Column(Float, default=0.0)
+    poupanca_realizada = Column(Float, default=0.0)
+    percentual_receita = Column(Float, default=0.0)
+    percentual_despesa = Column(Float, default=0.0)
+    percentual_investimento = Column(Float, default=0.0)
+    percentual_poupanca = Column(Float, default=0.0)
+    status_geral = Column(String, default="regular")  # "excelente", "bom", "regular", "ruim"
+    observacoes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    user = relationship("User")

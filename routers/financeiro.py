@@ -4,7 +4,7 @@ from sqlalchemy import func, and_, or_
 from database import get_db
 from models import (
     User, ContaPagar, ContaReceber, MetaFinanceira, TransacaoMeta, 
-    Investimento, ResumoFinanceiro, CategoriaConta, StatusConta, 
+    Investimento, ResumoFinanceiro, MetaMensal, CategoriaConta, StatusConta, 
     TipoInvestimento, StatusMeta
 )
 from schemas import (
@@ -14,7 +14,10 @@ from schemas import (
     MetaFinanceiraCreate, MetaFinanceiraUpdate, MetaFinanceiraResponse,
     TransacaoMetaCreate, TransacaoMetaResponse,
     InvestimentoCreate, InvestimentoUpdate, InvestimentoResponse,
-    DashboardResponse, GraficoMensalResponse, RelatorioCategoriaResponse
+    DashboardResponse, GraficoMensalResponse, RelatorioCategoriaResponse,
+    RelatorioMensalResponse, FluxoCaixaMensalResponse, ComparativoMensalResponse,
+    AlertasMensaisResponse, MetaMensalCreate, MetaMensalUpdate, MetaMensalResponse,
+    DashboardMensalResponse
 )
 from auth import get_current_user
 from typing import List, Optional
@@ -690,28 +693,50 @@ def deletar_investimento(
 
 @router.get("/dashboard", response_model=DashboardResponse)
 def obter_dashboard(
+    mes: Optional[int] = None,
+    ano: Optional[int] = None,
+    tipo: str = Query("mensal", description="Tipo: 'mensal', 'anual' ou 'total'"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Obter dados do dashboard financeiro"""
     hoje = date.today()
-    inicio_mes = hoje.replace(day=1)
     
-    # Receitas do mês
-    receitas_mes = db.query(func.sum(ContaReceber.valor)).filter(
-        ContaReceber.user_id == current_user.id,
-        ContaReceber.status == StatusConta.PAGO,
-        func.extract('month', ContaReceber.data_recebimento) == hoje.month,
-        func.extract('year', ContaReceber.data_recebimento) == hoje.year
-    ).scalar() or 0
+    # Definir parâmetros baseados no tipo
+    if tipo == "mensal":
+        mes_ref = mes or hoje.month
+        ano_ref = ano or hoje.year
+        filtro_mes = mes_ref
+        filtro_ano = ano_ref
+    elif tipo == "anual":
+        ano_ref = ano or hoje.year
+        filtro_mes = None
+        filtro_ano = ano_ref
+    else:  # total
+        filtro_mes = None
+        filtro_ano = None
     
-    # Despesas do mês
-    despesas_mes = db.query(func.sum(ContaPagar.valor)).filter(
-        ContaPagar.user_id == current_user.id,
-        ContaPagar.status == StatusConta.PAGO,
-        func.extract('month', ContaPagar.data_pagamento) == hoje.month,
-        func.extract('year', ContaPagar.data_pagamento) == hoje.year
-    ).scalar() or 0
+    # Construir filtros baseados no tipo
+    filtros_receitas = [ContaReceber.user_id == current_user.id, ContaReceber.status == StatusConta.PAGO]
+    filtros_despesas = [ContaPagar.user_id == current_user.id, ContaPagar.status == StatusConta.PAGO]
+    
+    if filtro_mes:
+        # Para receitas: filtrar por data_vencimento (quando vence) - SQLite
+        filtros_receitas.append(func.strftime('%m', ContaReceber.data_vencimento) == f'{filtro_mes:02d}')
+        # Para despesas: filtrar por data_vencimento (quando vence) - SQLite
+        filtros_despesas.append(func.strftime('%m', ContaPagar.data_vencimento) == f'{filtro_mes:02d}')
+    
+    if filtro_ano:
+        # Para receitas: filtrar por data_vencimento (quando vence) - SQLite
+        filtros_receitas.append(func.strftime('%Y', ContaReceber.data_vencimento) == str(filtro_ano))
+        # Para despesas: filtrar por data_vencimento (quando vence) - SQLite
+        filtros_despesas.append(func.strftime('%Y', ContaPagar.data_vencimento) == str(filtro_ano))
+    
+    # Receitas
+    receitas_mes = db.query(func.sum(ContaReceber.valor)).filter(*filtros_receitas).scalar() or 0
+    
+    # Despesas
+    despesas_mes = db.query(func.sum(ContaPagar.valor)).filter(*filtros_despesas).scalar() or 0
     
     # Total investido
     total_investido = db.query(func.sum(Investimento.valor_atual)).filter(
@@ -846,4 +871,803 @@ def obter_relatorio_categorias(
         ))
     
     return sorted(relatorio, key=lambda x: x.total, reverse=True)
+
+# ==================== RELATÓRIOS MENSALS ====================
+
+@router.get("/relatorios/mensal", response_model=RelatorioMensalResponse)
+def obter_relatorio_mensal(
+    mes: Optional[int] = None,
+    ano: Optional[int] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obter relatório financeiro completo do mês"""
+    hoje = date.today()
+    mes_ref = mes or hoje.month
+    ano_ref = ano or hoje.year
+    
+    # Calcular totais do mês
+    receitas_mes = db.query(func.sum(ContaReceber.valor)).filter(
+        ContaReceber.user_id == current_user.id,
+        ContaReceber.status == StatusConta.PAGO,
+        func.extract('month', ContaReceber.data_recebimento) == mes_ref,
+        func.extract('year', ContaReceber.data_recebimento) == ano_ref
+    ).scalar() or 0
+    
+    despesas_mes = db.query(func.sum(ContaPagar.valor)).filter(
+        ContaPagar.user_id == current_user.id,
+        ContaPagar.status == StatusConta.PAGO,
+        func.extract('month', ContaPagar.data_pagamento) == mes_ref,
+        func.extract('year', ContaPagar.data_pagamento) == ano_ref
+    ).scalar() or 0
+    
+    saldo_mensal = receitas_mes - despesas_mes
+    
+    # Total investido no mês
+    total_investido = db.query(func.sum(Investimento.valor_investido)).filter(
+        Investimento.user_id == current_user.id,
+        func.extract('month', Investimento.data_investimento) == mes_ref,
+        func.extract('year', Investimento.data_investimento) == ano_ref
+    ).scalar() or 0
+    
+    # Total em metas no mês
+    total_metas = db.query(func.sum(TransacaoMeta.valor)).filter(
+        TransacaoMeta.user_id == current_user.id,
+        func.extract('month', TransacaoMeta.data_transacao) == mes_ref,
+        func.extract('year', TransacaoMeta.data_transacao) == ano_ref
+    ).scalar() or 0
+    
+    # Contas pagas e vencidas
+    contas_pagas = db.query(func.count(ContaPagar.id)).filter(
+        ContaPagar.user_id == current_user.id,
+        ContaPagar.status == StatusConta.PAGO,
+        func.extract('month', ContaPagar.data_pagamento) == mes_ref,
+        func.extract('year', ContaPagar.data_pagamento) == ano_ref
+    ).scalar() or 0
+    
+    contas_vencidas = db.query(func.count(ContaPagar.id)).filter(
+        ContaPagar.user_id == current_user.id,
+        ContaPagar.status == StatusConta.VENCIDO,
+        func.extract('month', ContaPagar.data_vencimento) == mes_ref,
+        func.extract('year', ContaPagar.data_vencimento) == ano_ref
+    ).scalar() or 0
+    
+    # Metas concluídas e ativas
+    metas_concluidas = db.query(func.count(MetaFinanceira.id)).filter(
+        MetaFinanceira.user_id == current_user.id,
+        MetaFinanceira.status == StatusMeta.CONCLUIDA,
+        func.extract('month', MetaFinanceira.updated_at) == mes_ref,
+        func.extract('year', MetaFinanceira.updated_at) == ano_ref
+    ).scalar() or 0
+    
+    metas_ativas = db.query(func.count(MetaFinanceira.id)).filter(
+        MetaFinanceira.user_id == current_user.id,
+        MetaFinanceira.status == StatusMeta.ATIVA
+    ).scalar() or 0
+    
+    # Relatórios por categoria
+    receitas_por_categoria = obter_relatorio_categorias("receitas", mes_ref, ano_ref, current_user, db)
+    despesas_por_categoria = obter_relatorio_categorias("despesas", mes_ref, ano_ref, current_user, db)
+    
+    return RelatorioMensalResponse(
+        mes=mes_ref,
+        ano=ano_ref,
+        total_receitas=receitas_mes,
+        total_despesas=despesas_mes,
+        saldo_mensal=saldo_mensal,
+        total_investido=total_investido,
+        total_metas=total_metas,
+        receitas_por_categoria=receitas_por_categoria,
+        despesas_por_categoria=despesas_por_categoria,
+        contas_pagas=contas_pagas,
+        contas_vencidas=contas_vencidas,
+        metas_concluidas=metas_concluidas,
+        metas_ativas=metas_ativas
+    )
+
+@router.get("/relatorios/fluxo-caixa-mensal", response_model=FluxoCaixaMensalResponse)
+def obter_fluxo_caixa_mensal(
+    mes: Optional[int] = None,
+    ano: Optional[int] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obter fluxo de caixa mensal detalhado"""
+    hoje = date.today()
+    mes_ref = mes or hoje.month
+    ano_ref = ano or hoje.year
+    
+    # Saldo inicial (soma de todos os saldos até o mês anterior)
+    saldo_inicial = 0
+    if mes_ref > 1:
+        # Calcular saldo acumulado até o mês anterior
+        for m in range(1, mes_ref):
+            receitas_ant = db.query(func.sum(ContaReceber.valor)).filter(
+                ContaReceber.user_id == current_user.id,
+                ContaReceber.status == StatusConta.PAGO,
+                func.extract('month', ContaReceber.data_recebimento) == m,
+                func.extract('year', ContaReceber.data_recebimento) == ano_ref
+            ).scalar() or 0
+            
+            despesas_ant = db.query(func.sum(ContaPagar.valor)).filter(
+                ContaPagar.user_id == current_user.id,
+                ContaPagar.status == StatusConta.PAGO,
+                func.extract('month', ContaPagar.data_pagamento) == m,
+                func.extract('year', ContaPagar.data_pagamento) == ano_ref
+            ).scalar() or 0
+            
+            saldo_inicial += (receitas_ant - despesas_ant)
+    
+    # Entradas do mês
+    entradas = db.query(func.sum(ContaReceber.valor)).filter(
+        ContaReceber.user_id == current_user.id,
+        ContaReceber.status == StatusConta.PAGO,
+        func.extract('month', ContaReceber.data_recebimento) == mes_ref,
+        func.extract('year', ContaReceber.data_recebimento) == ano_ref
+    ).scalar() or 0
+    
+    # Saídas do mês
+    saidas = db.query(func.sum(ContaPagar.valor)).filter(
+        ContaPagar.user_id == current_user.id,
+        ContaPagar.status == StatusConta.PAGO,
+        func.extract('month', ContaPagar.data_pagamento) == mes_ref,
+        func.extract('year', ContaPagar.data_pagamento) == ano_ref
+    ).scalar() or 0
+    
+    saldo_final = saldo_inicial + entradas - saidas
+    variacao_mensal = entradas - saidas
+    percentual_variacao = (variacao_mensal / saldo_inicial * 100) if saldo_inicial > 0 else 0
+    
+    return FluxoCaixaMensalResponse(
+        mes=mes_ref,
+        ano=ano_ref,
+        saldo_inicial=saldo_inicial,
+        entradas=entradas,
+        saidas=saidas,
+        saldo_final=saldo_final,
+        variacao_mensal=variacao_mensal,
+        percentual_variacao=round(percentual_variacao, 2)
+    )
+
+@router.get("/relatorios/comparativo-mensal", response_model=ComparativoMensalResponse)
+def obter_comparativo_mensal(
+    mes: Optional[int] = None,
+    ano: Optional[int] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Comparar mês atual com mês anterior"""
+    hoje = date.today()
+    mes_atual = mes or hoje.month
+    ano_atual = ano or hoje.year
+    
+    # Calcular mês anterior
+    if mes_atual == 1:
+        mes_anterior = 12
+        ano_anterior = ano_atual - 1
+    else:
+        mes_anterior = mes_atual - 1
+        ano_anterior = ano_atual
+    
+    # Obter relatórios
+    relatorio_atual = obter_relatorio_mensal(mes_atual, ano_atual, current_user, db)
+    relatorio_anterior = obter_relatorio_mensal(mes_anterior, ano_anterior, current_user, db)
+    
+    # Calcular variações
+    variacao_receitas = relatorio_atual.total_receitas - relatorio_anterior.total_receitas
+    variacao_despesas = relatorio_atual.total_despesas - relatorio_anterior.total_despesas
+    variacao_saldo = relatorio_atual.saldo_mensal - relatorio_anterior.saldo_mensal
+    
+    # Determinar tendência
+    if variacao_saldo > 0:
+        tendencia = "crescimento"
+    elif variacao_saldo < 0:
+        tendencia = "declinio"
+    else:
+        tendencia = "estavel"
+    
+    return ComparativoMensalResponse(
+        mes_atual=relatorio_atual,
+        mes_anterior=relatorio_anterior,
+        variacao_receitas=variacao_receitas,
+        variacao_despesas=variacao_despesas,
+        variacao_saldo=variacao_saldo,
+        tendencia=tendencia
+    )
+
+@router.get("/relatorios/alertas-mensais", response_model=AlertasMensaisResponse)
+def obter_alertas_mensais(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obter alertas e notificações financeiras"""
+    hoje = date.today()
+    
+    # Contas vencidas
+    contas_vencidas = db.query(ContaPagar).filter(
+        ContaPagar.user_id == current_user.id,
+        ContaPagar.status == StatusConta.VENCIDO,
+        ContaPagar.data_vencimento < hoje
+    ).all()
+    
+    # Metas atrasadas (que passaram da data limite)
+    metas_atrasadas = db.query(MetaFinanceira).filter(
+        MetaFinanceira.user_id == current_user.id,
+        MetaFinanceira.status == StatusMeta.ATIVA,
+        MetaFinanceira.data_meta < hoje
+    ).all()
+    
+    # Investimentos com rentabilidade negativa
+    investimentos_negativos = db.query(Investimento).filter(
+        Investimento.user_id == current_user.id,
+        Investimento.ativo == True,
+        Investimento.valor_atual < Investimento.valor_investido
+    ).all()
+    
+    # Verificar saldo negativo
+    saldo_negativo = False
+    alertas_criticos = []
+    
+    # Calcular saldo atual
+    receitas_totais = db.query(func.sum(ContaReceber.valor)).filter(
+        ContaReceber.user_id == current_user.id,
+        ContaReceber.status == StatusConta.PAGO
+    ).scalar() or 0
+    
+    despesas_totais = db.query(func.sum(ContaPagar.valor)).filter(
+        ContaPagar.user_id == current_user.id,
+        ContaPagar.status == StatusConta.PAGO
+    ).scalar() or 0
+    
+    saldo_atual = receitas_totais - despesas_totais
+    
+    if saldo_atual < 0:
+        saldo_negativo = True
+        alertas_criticos.append("Saldo negativo detectado!")
+    
+    if len(contas_vencidas) > 5:
+        alertas_criticos.append("Muitas contas vencidas!")
+    
+    if len(metas_atrasadas) > 3:
+        alertas_criticos.append("Muitas metas atrasadas!")
+    
+    return AlertasMensaisResponse(
+        contas_vencidas=contas_vencidas,
+        metas_atrasadas=metas_atrasadas,
+        investimentos_negativos=investimentos_negativos,
+        saldo_negativo=saldo_negativo,
+        alertas_criticos=alertas_criticos
+    )
+
+@router.post("/relatorios/gerar-resumo-mensal")
+def gerar_resumo_mensal_automatico(
+    mes: Optional[int] = None,
+    ano: Optional[int] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Gerar e salvar resumo financeiro mensal automaticamente"""
+    hoje = date.today()
+    mes_ref = mes or hoje.month
+    ano_ref = ano or hoje.year
+    
+    # Verificar se já existe resumo para o mês
+    resumo_existente = db.query(ResumoFinanceiro).filter(
+        ResumoFinanceiro.user_id == current_user.id,
+        ResumoFinanceiro.mes == mes_ref,
+        ResumoFinanceiro.ano == ano_ref
+    ).first()
+    
+    if resumo_existente:
+        # Atualizar resumo existente
+        resumo = resumo_existente
+    else:
+        # Criar novo resumo
+        resumo = ResumoFinanceiro(
+            user_id=current_user.id,
+            mes=mes_ref,
+            ano=ano_ref
+        )
+        db.add(resumo)
+    
+    # Calcular totais
+    receitas_mes = db.query(func.sum(ContaReceber.valor)).filter(
+        ContaReceber.user_id == current_user.id,
+        ContaReceber.status == StatusConta.PAGO,
+        func.extract('month', ContaReceber.data_recebimento) == mes_ref,
+        func.extract('year', ContaReceber.data_recebimento) == ano_ref
+    ).scalar() or 0
+    
+    despesas_mes = db.query(func.sum(ContaPagar.valor)).filter(
+        ContaPagar.user_id == current_user.id,
+        ContaPagar.status == StatusConta.PAGO,
+        func.extract('month', ContaPagar.data_pagamento) == mes_ref,
+        func.extract('year', ContaPagar.data_pagamento) == ano_ref
+    ).scalar() or 0
+    
+    total_investido = db.query(func.sum(Investimento.valor_investido)).filter(
+        Investimento.user_id == current_user.id,
+        func.extract('month', Investimento.data_investimento) == mes_ref,
+        func.extract('year', Investimento.data_investimento) == ano_ref
+    ).scalar() or 0
+    
+    total_metas = db.query(func.sum(TransacaoMeta.valor)).filter(
+        TransacaoMeta.user_id == current_user.id,
+        func.extract('month', TransacaoMeta.data_transacao) == mes_ref,
+        func.extract('year', TransacaoMeta.data_transacao) == ano_ref
+    ).scalar() or 0
+    
+    # Atualizar resumo
+    resumo.total_receitas = receitas_mes
+    resumo.total_despesas = despesas_mes
+    resumo.saldo_mensal = receitas_mes - despesas_mes
+    resumo.total_investido = total_investido
+    resumo.total_metas = total_metas
+    
+    db.commit()
+    
+    return {"message": f"Resumo mensal gerado com sucesso para {mes_ref}/{ano_ref}"}
+
+# ==================== METAS MENSALS ====================
+
+@router.post("/metas-mensais", response_model=MetaMensalResponse)
+def criar_meta_mensal(
+    meta: MetaMensalCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Criar meta mensal"""
+    # Verificar se já existe meta para o mês/ano
+    meta_existente = db.query(MetaMensal).filter(
+        MetaMensal.user_id == current_user.id,
+        MetaMensal.mes == meta.mes,
+        MetaMensal.ano == meta.ano
+    ).first()
+    
+    if meta_existente:
+        raise HTTPException(status_code=400, detail="Já existe meta para este mês/ano")
+    
+    db_meta = MetaMensal(
+        user_id=current_user.id,
+        **meta.dict()
+    )
+    db.add(db_meta)
+    db.commit()
+    db.refresh(db_meta)
+    
+    # Atualizar valores realizados
+    atualizar_meta_mensal(db_meta.id, current_user, db)
+    
+    return db_meta
+
+@router.get("/metas-mensais", response_model=List[MetaMensalResponse])
+def listar_metas_mensais(
+    mes: Optional[int] = None,
+    ano: Optional[int] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Listar metas mensais"""
+    query = db.query(MetaMensal).filter(MetaMensal.user_id == current_user.id)
+    
+    if mes:
+        query = query.filter(MetaMensal.mes == mes)
+    if ano:
+        query = query.filter(MetaMensal.ano == ano)
+    
+    metas = query.order_by(MetaMensal.ano.desc(), MetaMensal.mes.desc()).all()
+    
+    # Atualizar valores realizados para cada meta
+    for meta in metas:
+        atualizar_meta_mensal(meta.id, current_user, db)
+    
+    return metas
+
+@router.get("/metas-mensais/{meta_id}", response_model=MetaMensalResponse)
+def obter_meta_mensal(
+    meta_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obter meta mensal específica"""
+    meta = db.query(MetaMensal).filter(
+        MetaMensal.id == meta_id,
+        MetaMensal.user_id == current_user.id
+    ).first()
+    
+    if not meta:
+        raise HTTPException(status_code=404, detail="Meta mensal não encontrada")
+    
+    # Atualizar valores realizados
+    atualizar_meta_mensal(meta.id, current_user, db)
+    
+    return meta
+
+@router.put("/metas-mensais/{meta_id}", response_model=MetaMensalResponse)
+def atualizar_meta_mensal_endpoint(
+    meta_id: int,
+    meta_update: MetaMensalUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Atualizar meta mensal"""
+    meta = db.query(MetaMensal).filter(
+        MetaMensal.id == meta_id,
+        MetaMensal.user_id == current_user.id
+    ).first()
+    
+    if not meta:
+        raise HTTPException(status_code=404, detail="Meta mensal não encontrada")
+    
+    for field, value in meta_update.dict(exclude_unset=True).items():
+        setattr(meta, field, value)
+    
+    db.commit()
+    db.refresh(meta)
+    
+    # Atualizar valores realizados
+    atualizar_meta_mensal(meta.id, current_user, db)
+    
+    return meta
+
+@router.delete("/metas-mensais/{meta_id}")
+def deletar_meta_mensal(
+    meta_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Deletar meta mensal"""
+    meta = db.query(MetaMensal).filter(
+        MetaMensal.id == meta_id,
+        MetaMensal.user_id == current_user.id
+    ).first()
+    
+    if not meta:
+        raise HTTPException(status_code=404, detail="Meta mensal não encontrada")
+    
+    db.delete(meta)
+    db.commit()
+    return {"message": "Meta mensal deletada com sucesso"}
+
+@router.get("/dashboard-mensal", response_model=DashboardMensalResponse)
+def obter_dashboard_mensal(
+    mes: Optional[int] = None,
+    ano: Optional[int] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obter dashboard mensal completo"""
+    hoje = date.today()
+    mes_ref = mes or hoje.month
+    ano_ref = ano or hoje.year
+    
+    # Obter todos os dados do mês
+    resumo_mensal = obter_relatorio_mensal(mes_ref, ano_ref, current_user, db)
+    fluxo_caixa = obter_fluxo_caixa_mensal(mes_ref, ano_ref, current_user, db)
+    comparativo = obter_comparativo_mensal(mes_ref, ano_ref, current_user, db)
+    alertas = obter_alertas_mensais(current_user, db)
+    
+    # Buscar meta mensal
+    meta_mensal = db.query(MetaMensal).filter(
+        MetaMensal.user_id == current_user.id,
+        MetaMensal.mes == mes_ref,
+        MetaMensal.ano == ano_ref
+    ).first()
+    
+    if meta_mensal:
+        atualizar_meta_mensal(meta_mensal.id, current_user, db)
+    
+    # Próximos vencimentos (próximos 7 dias)
+    data_limite = hoje + timedelta(days=7)
+    proximos_vencimentos = db.query(ContaPagar).filter(
+        ContaPagar.user_id == current_user.id,
+        ContaPagar.status == StatusConta.PENDENTE,
+        ContaPagar.data_vencimento <= data_limite,
+        ContaPagar.data_vencimento >= hoje
+    ).order_by(ContaPagar.data_vencimento).limit(10).all()
+    
+    # Metas próximas (próximos 30 dias)
+    data_limite_metas = hoje + timedelta(days=30)
+    metas_proximas = db.query(MetaFinanceira).filter(
+        MetaFinanceira.user_id == current_user.id,
+        MetaFinanceira.status == StatusMeta.ATIVA,
+        MetaFinanceira.data_meta <= data_limite_metas,
+        MetaFinanceira.data_meta >= hoje
+    ).order_by(MetaFinanceira.data_meta).limit(5).all()
+    
+    return DashboardMensalResponse(
+        mes=mes_ref,
+        ano=ano_ref,
+        resumo_mensal=resumo_mensal,
+        fluxo_caixa=fluxo_caixa,
+        comparativo=comparativo,
+        alertas=alertas,
+        metas_mensais=meta_mensal,
+        proximos_vencimentos=proximos_vencimentos,
+        metas_proximas=metas_proximas
+    )
+
+def atualizar_meta_mensal(meta_id: int, current_user: User, db: Session):
+    """Função auxiliar para atualizar valores realizados de uma meta mensal"""
+    meta = db.query(MetaMensal).filter(
+        MetaMensal.id == meta_id,
+        MetaMensal.user_id == current_user.id
+    ).first()
+    
+    if not meta:
+        return
+    
+    # Calcular valores realizados
+    receita_realizada = db.query(func.sum(ContaReceber.valor)).filter(
+        ContaReceber.user_id == current_user.id,
+        ContaReceber.status == StatusConta.PAGO,
+        func.extract('month', ContaReceber.data_recebimento) == meta.mes,
+        func.extract('year', ContaReceber.data_recebimento) == meta.ano
+    ).scalar() or 0
+    
+    despesa_realizada = db.query(func.sum(ContaPagar.valor)).filter(
+        ContaPagar.user_id == current_user.id,
+        ContaPagar.status == StatusConta.PAGO,
+        func.extract('month', ContaPagar.data_pagamento) == meta.mes,
+        func.extract('year', ContaPagar.data_pagamento) == meta.ano
+    ).scalar() or 0
+    
+    investimento_realizado = db.query(func.sum(Investimento.valor_investido)).filter(
+        Investimento.user_id == current_user.id,
+        func.extract('month', Investimento.data_investimento) == meta.mes,
+        func.extract('year', Investimento.data_investimento) == meta.ano
+    ).scalar() or 0
+    
+    poupanca_realizada = db.query(func.sum(TransacaoMeta.valor)).filter(
+        TransacaoMeta.user_id == current_user.id,
+        func.extract('month', TransacaoMeta.data_transacao) == meta.mes,
+        func.extract('year', TransacaoMeta.data_transacao) == meta.ano
+    ).scalar() or 0
+    
+    # Calcular percentuais
+    percentual_receita = (receita_realizada / meta.meta_receita * 100) if meta.meta_receita > 0 else 0
+    percentual_despesa = (despesa_realizada / meta.meta_despesa * 100) if meta.meta_despesa > 0 else 0
+    percentual_investimento = (investimento_realizado / meta.meta_investimento * 100) if meta.meta_investimento > 0 else 0
+    percentual_poupanca = (poupanca_realizada / meta.meta_poupanca * 100) if meta.meta_poupanca > 0 else 0
+    
+    # Determinar status geral
+    percentual_medio = (percentual_receita + percentual_despesa + percentual_investimento + percentual_poupanca) / 4
+    
+    if percentual_medio >= 100:
+        status_geral = "excelente"
+    elif percentual_medio >= 80:
+        status_geral = "bom"
+    elif percentual_medio >= 60:
+        status_geral = "regular"
+    else:
+        status_geral = "ruim"
+    
+    # Atualizar meta
+    meta.receita_realizada = receita_realizada
+    meta.despesa_realizada = despesa_realizada
+    meta.investimento_realizado = investimento_realizado
+    meta.poupanca_realizada = poupanca_realizada
+    meta.percentual_receita = round(percentual_receita, 2)
+    meta.percentual_despesa = round(percentual_despesa, 2)
+    meta.percentual_investimento = round(percentual_investimento, 2)
+    meta.percentual_poupanca = round(percentual_poupanca, 2)
+    meta.status_geral = status_geral
+    
+    db.commit()
+
+# ==================== EXPORTAÇÃO DE RELATÓRIOS ====================
+
+@router.get("/relatorios/exportar-mensal")
+def exportar_relatorio_mensal(
+    mes: Optional[int] = None,
+    ano: Optional[int] = None,
+    formato: str = Query("json", description="Formato: 'json' ou 'csv'"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Exportar relatório mensal em JSON ou CSV"""
+    hoje = date.today()
+    mes_ref = mes or hoje.month
+    ano_ref = ano or hoje.year
+    
+    # Obter dados do relatório
+    relatorio = obter_relatorio_mensal(mes_ref, ano_ref, current_user, db)
+    fluxo_caixa = obter_fluxo_caixa_mensal(mes_ref, ano_ref, current_user, db)
+    comparativo = obter_comparativo_mensal(mes_ref, ano_ref, current_user, db)
+    alertas = obter_alertas_mensais(current_user, db)
+    
+    # Buscar meta mensal
+    meta_mensal = db.query(MetaMensal).filter(
+        MetaMensal.user_id == current_user.id,
+        MetaMensal.mes == mes_ref,
+        MetaMensal.ano == ano_ref
+    ).first()
+    
+    if meta_mensal:
+        atualizar_meta_mensal(meta_mensal.id, current_user, db)
+    
+    # Montar dados para exportação
+    dados_exportacao = {
+        "usuario": current_user.full_name,
+        "mes": mes_ref,
+        "ano": ano_ref,
+        "data_exportacao": datetime.now().isoformat(),
+        "resumo_mensal": {
+            "total_receitas": relatorio.total_receitas,
+            "total_despesas": relatorio.total_despesas,
+            "saldo_mensal": relatorio.saldo_mensal,
+            "total_investido": relatorio.total_investido,
+            "total_metas": relatorio.total_metas,
+            "contas_pagas": relatorio.contas_pagas,
+            "contas_vencidas": relatorio.contas_vencidas,
+            "metas_concluidas": relatorio.metas_concluidas,
+            "metas_ativas": relatorio.metas_ativas
+        },
+        "fluxo_caixa": {
+            "saldo_inicial": fluxo_caixa.saldo_inicial,
+            "entradas": fluxo_caixa.entradas,
+            "saidas": fluxo_caixa.saidas,
+            "saldo_final": fluxo_caixa.saldo_final,
+            "variacao_mensal": fluxo_caixa.variacao_mensal,
+            "percentual_variacao": fluxo_caixa.percentual_variacao
+        },
+        "comparativo": {
+            "variacao_receitas": comparativo.variacao_receitas,
+            "variacao_despesas": comparativo.variacao_despesas,
+            "variacao_saldo": comparativo.variacao_saldo,
+            "tendencia": comparativo.tendencia
+        },
+        "alertas": {
+            "saldo_negativo": alertas.saldo_negativo,
+            "contas_vencidas_count": len(alertas.contas_vencidas),
+            "metas_atrasadas_count": len(alertas.metas_atrasadas),
+            "investimentos_negativos_count": len(alertas.investimentos_negativos),
+            "alertas_criticos": alertas.alertas_criticos
+        },
+        "receitas_por_categoria": [
+            {
+                "categoria": item.categoria,
+                "total": item.total,
+                "percentual": item.percentual,
+                "quantidade": item.quantidade
+            } for item in relatorio.receitas_por_categoria
+        ],
+        "despesas_por_categoria": [
+            {
+                "categoria": item.categoria,
+                "total": item.total,
+                "percentual": item.percentual,
+                "quantidade": item.quantidade
+            } for item in relatorio.despesas_por_categoria
+        ]
+    }
+    
+    if meta_mensal:
+        dados_exportacao["meta_mensal"] = {
+            "meta_receita": meta_mensal.meta_receita,
+            "meta_despesa": meta_mensal.meta_despesa,
+            "meta_investimento": meta_mensal.meta_investimento,
+            "meta_poupanca": meta_mensal.meta_poupanca,
+            "receita_realizada": meta_mensal.receita_realizada,
+            "despesa_realizada": meta_mensal.despesa_realizada,
+            "investimento_realizado": meta_mensal.investimento_realizado,
+            "poupanca_realizada": meta_mensal.poupanca_realizada,
+            "percentual_receita": meta_mensal.percentual_receita,
+            "percentual_despesa": meta_mensal.percentual_despesa,
+            "percentual_investimento": meta_mensal.percentual_investimento,
+            "percentual_poupanca": meta_mensal.percentual_poupanca,
+            "status_geral": meta_mensal.status_geral
+        }
+    
+    if formato == "csv":
+        # Gerar CSV
+        import csv
+        import io
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Cabeçalho
+        writer.writerow(["Relatório Financeiro Mensal"])
+        writer.writerow([f"Usuário: {current_user.full_name}"])
+        writer.writerow([f"Mês/Ano: {mes_ref}/{ano_ref}"])
+        writer.writerow([f"Data Exportação: {datetime.now().strftime('%d/%m/%Y %H:%M')}"])
+        writer.writerow([])
+        
+        # Resumo
+        writer.writerow(["RESUMO MENSAL"])
+        writer.writerow(["Total Receitas", f"R$ {relatorio.total_receitas:.2f}"])
+        writer.writerow(["Total Despesas", f"R$ {relatorio.total_despesas:.2f}"])
+        writer.writerow(["Saldo Mensal", f"R$ {relatorio.saldo_mensal:.2f}"])
+        writer.writerow(["Total Investido", f"R$ {relatorio.total_investido:.2f}"])
+        writer.writerow(["Total Metas", f"R$ {relatorio.total_metas:.2f}"])
+        writer.writerow([])
+        
+        # Fluxo de Caixa
+        writer.writerow(["FLUXO DE CAIXA"])
+        writer.writerow(["Saldo Inicial", f"R$ {fluxo_caixa.saldo_inicial:.2f}"])
+        writer.writerow(["Entradas", f"R$ {fluxo_caixa.entradas:.2f}"])
+        writer.writerow(["Saídas", f"R$ {fluxo_caixa.saidas:.2f}"])
+        writer.writerow(["Saldo Final", f"R$ {fluxo_caixa.saldo_final:.2f}"])
+        writer.writerow(["Variação Mensal", f"R$ {fluxo_caixa.variacao_mensal:.2f}"])
+        writer.writerow(["% Variação", f"{fluxo_caixa.percentual_variacao:.2f}%"])
+        writer.writerow([])
+        
+        # Receitas por Categoria
+        writer.writerow(["RECEITAS POR CATEGORIA"])
+        writer.writerow(["Categoria", "Total", "Percentual", "Quantidade"])
+        for item in relatorio.receitas_por_categoria:
+            writer.writerow([item.categoria, f"R$ {item.total:.2f}", f"{item.percentual:.2f}%", item.quantidade])
+        writer.writerow([])
+        
+        # Despesas por Categoria
+        writer.writerow(["DESPESAS POR CATEGORIA"])
+        writer.writerow(["Categoria", "Total", "Percentual", "Quantidade"])
+        for item in relatorio.despesas_por_categoria:
+            writer.writerow([item.categoria, f"R$ {item.total:.2f}", f"{item.percentual:.2f}%", item.quantidade])
+        
+        csv_content = output.getvalue()
+        output.close()
+        
+        from fastapi.responses import Response
+        return Response(
+            content=csv_content,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=relatorio_mensal_{mes_ref}_{ano_ref}.csv"}
+        )
+    
+    else:  # JSON
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            content=dados_exportacao,
+            headers={"Content-Disposition": f"attachment; filename=relatorio_mensal_{mes_ref}_{ano_ref}.json"}
+        )
+
+@router.post("/relatorios/gerar-todos-meses")
+def gerar_relatorios_todos_meses(
+    ano: int = Query(..., description="Ano para gerar relatórios"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Gerar relatórios para todos os meses de um ano"""
+    meses_gerados = []
+    
+    for mes in range(1, 13):
+        try:
+            # Gerar resumo mensal
+            gerar_resumo_mensal_automatico(mes, ano, current_user, db)
+            
+            # Criar meta mensal se não existir
+            meta_existente = db.query(MetaMensal).filter(
+                MetaMensal.user_id == current_user.id,
+                MetaMensal.mes == mes,
+                MetaMensal.ano == ano
+            ).first()
+            
+            if not meta_existente:
+                # Criar meta mensal padrão
+                meta_mensal = MetaMensal(
+                    user_id=current_user.id,
+                    mes=mes,
+                    ano=ano,
+                    meta_receita=0.0,
+                    meta_despesa=0.0,
+                    meta_investimento=0.0,
+                    meta_poupanca=0.0,
+                    observacoes=f"Meta mensal gerada automaticamente para {mes}/{ano}"
+                )
+                db.add(meta_mensal)
+                db.commit()
+            
+            meses_gerados.append(f"{mes:02d}/{ano}")
+            
+        except Exception as e:
+            print(f"Erro ao gerar relatório para {mes}/{ano}: {e}")
+            continue
+    
+    return {
+        "message": f"Relatórios gerados para {len(meses_gerados)} meses",
+        "meses_gerados": meses_gerados,
+        "total_meses": len(meses_gerados)
+    }
 

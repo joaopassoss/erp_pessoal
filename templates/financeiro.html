@@ -93,6 +93,10 @@
                             <i class="fas fa-bullseye me-2"></i>
                             Metas Financeiras
                         </a>
+                        <a class="nav-link" href="#" onclick="showSection('metas-mensais')">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            Metas Mensais
+                        </a>
                         <a class="nav-link" href="#" onclick="showSection('investimentos')">
                             <i class="fas fa-chart-line me-2"></i>
                             Investimentos
@@ -109,17 +113,51 @@
             <div class="col-md-9 col-lg-10 p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h2 class="mb-0"><i class="fas fa-wallet me-2"></i>Módulo Financeiro</h2>
-                    <a href="/dashboard" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Voltar para a Principal
-                    </a>
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Seletor de Mês -->
+                        <div class="btn-group">
+                            <button class="btn btn-outline-primary" onclick="alterarMes(-1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="btn btn-primary" id="mes-atual-display">
+                                <i class="fas fa-calendar me-2"></i>
+                                <span id="mes-nome">Dezembro 2024</span>
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="alterarMes(1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <a href="/dashboard" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Voltar para a Principal
+                        </a>
+                    </div>
                 </div>
                 <!-- Dashboard Section -->
                 <div id="dashboard-section" class="content-section">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard Financeiro</h2>
-                        <button class="btn btn-primary" onclick="loadDashboard()">
-                            <i class="fas fa-sync-alt me-2"></i>Atualizar
-                        </button>
+                        <div class="d-flex align-items-center gap-3">
+                            <!-- Seletor de Modo do Dashboard -->
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="dashboard-mode" id="dashboard-mensal" value="mensal" checked>
+                                <label class="btn btn-outline-primary" for="dashboard-mensal">
+                                    <i class="fas fa-calendar-day me-1"></i>Mensal
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="dashboard-mode" id="dashboard-anual" value="anual">
+                                <label class="btn btn-outline-primary" for="dashboard-anual">
+                                    <i class="fas fa-calendar-alt me-1"></i>Anual
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="dashboard-mode" id="dashboard-total" value="total">
+                                <label class="btn btn-outline-primary" for="dashboard-total">
+                                    <i class="fas fa-chart-line me-1"></i>Total
+                                </label>
+                            </div>
+                            <button class="btn btn-primary" onclick="loadDashboard()">
+                                <i class="fas fa-sync-alt me-2"></i>Atualizar
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Cards de Resumo -->
@@ -128,8 +166,9 @@
                             <div class="card finance-card">
                                 <div class="card-body text-center">
                                     <i class="fas fa-wallet fa-2x mb-2"></i>
-                                    <h5>Saldo Atual</h5>
+                                    <h5 id="saldo-label">Saldo do Mês</h5>
                                     <h3 id="saldo-atual">R$ 0,00</h3>
+                                    <small class="text-muted" id="saldo-periodo">Outubro 2024</small>
                                 </div>
                             </div>
                         </div>
@@ -137,8 +176,9 @@
                             <div class="card finance-card success">
                                 <div class="card-body text-center">
                                     <i class="fas fa-arrow-up fa-2x mb-2"></i>
-                                    <h5>Receitas do Mês</h5>
+                                    <h5 id="receitas-label">Receitas</h5>
                                     <h3 id="receitas-mes">R$ 0,00</h3>
+                                    <small class="text-muted" id="receitas-periodo">Outubro 2024</small>
                                 </div>
                             </div>
                         </div>
@@ -146,8 +186,9 @@
                             <div class="card finance-card warning">
                                 <div class="card-body text-center">
                                     <i class="fas fa-arrow-down fa-2x mb-2"></i>
-                                    <h5>Despesas do Mês</h5>
+                                    <h5 id="despesas-label">Despesas</h5>
                                     <h3 id="despesas-mes">R$ 0,00</h3>
+                                    <small class="text-muted" id="despesas-periodo">Outubro 2024</small>
                                 </div>
                             </div>
                         </div>
@@ -155,8 +196,9 @@
                             <div class="card finance-card info">
                                 <div class="card-body text-center">
                                     <i class="fas fa-chart-line fa-2x mb-2"></i>
-                                    <h5>Total Investido</h5>
+                                    <h5 id="investimentos-label">Investimentos</h5>
                                     <h3 id="total-investido">R$ 0,00</h3>
+                                    <small class="text-muted" id="investimentos-periodo">Outubro 2024</small>
                                 </div>
                             </div>
                         </div>
@@ -404,6 +446,90 @@
                         <div class="card-body">
                             <div id="lista-investimentos">
                                 <p class="text-muted">Carregando investimentos...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metas Mensais Section -->
+                <div id="metas-mensais-section" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-calendar-alt me-2"></i>Metas Mensais</h2>
+                        <button class="btn btn-primary" onclick="criarMetaMensal()">
+                            <i class="fas fa-plus me-2"></i>Nova Meta Mensal
+                        </button>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-target me-2"></i>Status das Metas do Mês</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="status-metas-mensais">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span><i class="fas fa-arrow-up text-success me-2"></i>Receitas</span>
+                                                    <span id="percentual-receita-mensal">0%</span>
+                                                </div>
+                                                <div class="progress mb-3">
+                                                    <div class="progress-bar bg-success" id="barra-receita-mensal" style="width: 0%"></div>
+                                                </div>
+                                                <small class="text-muted" id="valor-receita-mensal">R$ 0,00 / R$ 0,00</small>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span><i class="fas fa-arrow-down text-danger me-2"></i>Despesas</span>
+                                                    <span id="percentual-despesa-mensal">0%</span>
+                                                </div>
+                                                <div class="progress mb-3">
+                                                    <div class="progress-bar bg-danger" id="barra-despesa-mensal" style="width: 0%"></div>
+                                                </div>
+                                                <small class="text-muted" id="valor-despesa-mensal">R$ 0,00 / R$ 0,00</small>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span><i class="fas fa-chart-line text-info me-2"></i>Investimentos</span>
+                                                    <span id="percentual-investimento-mensal">0%</span>
+                                                </div>
+                                                <div class="progress mb-3">
+                                                    <div class="progress-bar bg-info" id="barra-investimento-mensal" style="width: 0%"></div>
+                                                </div>
+                                                <small class="text-muted" id="valor-investimento-mensal">R$ 0,00 / R$ 0,00</small>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span><i class="fas fa-piggy-bank text-warning me-2"></i>Poupança</span>
+                                                    <span id="percentual-poupanca-mensal">0%</span>
+                                                </div>
+                                                <div class="progress mb-3">
+                                                    <div class="progress-bar bg-warning" id="barra-poupanca-mensal" style="width: 0%"></div>
+                                                </div>
+                                                <small class="text-muted" id="valor-poupanca-mensal">R$ 0,00 / R$ 0,00</small>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 text-center">
+                                            <span class="badge bg-secondary" id="status-geral-mensal">Status: Regular</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-list me-2"></i>Histórico de Metas Mensais</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="lista-metas-mensais">
+                                        <p class="text-muted">Carregando metas mensais...</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1140,9 +1266,26 @@
         // Carregar Dashboard
         async function loadDashboard() {
             try {
-                const response = await fetch('/api/financeiro/dashboard', { headers });
+                // Obter modo selecionado
+                const modo = obterModoDashboard();
+                
+                // Construir URL baseada no modo
+                let url = '/api/financeiro/dashboard';
+                if (modo === 'mensal') {
+                    url += `?mes=${mesAtual}&ano=${anoAtual}&tipo=mensal`;
+                } else if (modo === 'anual') {
+                    url += `?ano=${anoAtual}&tipo=anual`;
+                } else if (modo === 'total') {
+                    url += `?tipo=total`;
+                }
+                
+                const response = await fetch(url, { headers });
                 const data = await response.json();
                 
+                // Atualizar labels e períodos
+                atualizarLabelsDashboard(modo);
+                
+                // Atualizar valores
                 document.getElementById('saldo-atual').textContent = formatarMoeda(data.saldo_atual);
                 document.getElementById('receitas-mes').textContent = formatarMoeda(data.receitas_mes);
                 document.getElementById('despesas-mes').textContent = formatarMoeda(data.despesas_mes);
@@ -1227,7 +1370,7 @@
         // Carregar Contas a Pagar
         async function loadContasPagar() {
             try {
-                const response = await fetch('/api/financeiro/contas-pagar', { headers });
+                const response = await fetch(`/api/financeiro/contas-pagar?mes=${mesAtual}&ano=${anoAtual}`, { headers });
                 const contas = await response.json();
                 
                 const contasHtml = contas.map(conta => `
@@ -1285,7 +1428,7 @@
         // Carregar Contas a Receber
         async function loadContasReceber() {
             try {
-                const response = await fetch('/api/financeiro/contas-receber', { headers });
+                const response = await fetch(`/api/financeiro/contas-receber?mes=${mesAtual}&ano=${anoAtual}`, { headers });
                 const contas = await response.json();
                 
                 const contasHtml = contas.map(conta => `
@@ -1393,7 +1536,7 @@
         // Carregar Investimentos
         async function loadInvestimentos() {
             try {
-                const response = await fetch('/api/financeiro/investimentos', { headers });
+                const response = await fetch(`/api/financeiro/investimentos?mes=${mesAtual}&ano=${anoAtual}`, { headers });
                 const investimentos = await response.json();
                 
                 const investimentosHtml = investimentos.map(inv => {
@@ -2179,6 +2322,337 @@
             // Carregar dashboard inicial
             loadDashboard();
         });
+
+        // ==================== FUNCIONALIDADES MENSAIS ====================
+        
+        // Variáveis para controle mensal
+        let mesAtual = new Date().getMonth() + 1;
+        let anoAtual = new Date().getFullYear();
+        
+        // Função para alterar mês
+        function alterarMes(direcao) {
+            mesAtual += direcao;
+            
+            if (mesAtual > 12) {
+                mesAtual = 1;
+                anoAtual++;
+            } else if (mesAtual < 1) {
+                mesAtual = 12;
+                anoAtual--;
+            }
+            
+            atualizarDisplayMes();
+            recarregarDadosMensais();
+        }
+        
+        // Atualizar display do mês
+        function atualizarDisplayMes() {
+            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            document.getElementById('mes-nome').textContent = `${meses[mesAtual-1]} ${anoAtual}`;
+        }
+        
+        // Recarregar todos os dados mensais
+        function recarregarDadosMensais() {
+            // Recarregar dashboard com dados do mês selecionado
+            loadDashboard();
+            
+            // Recarregar contas a pagar do mês
+            loadContasPagar();
+            
+            // Recarregar contas a receber do mês
+            loadContasReceber();
+            
+            // Recarregar metas mensais
+            loadMetasMensais();
+            
+            // Recarregar investimentos do mês
+            loadInvestimentos();
+        }
+        
+        // Carregar metas mensais
+        async function loadMetasMensais() {
+            try {
+                const response = await fetch(`/api/financeiro/metas-mensais?mes=${mesAtual}&ano=${anoAtual}`, { headers });
+                const metas = await response.json();
+                
+                // Atualizar status das metas
+                if (metas.length > 0) {
+                    const meta = metas[0];
+                    atualizarStatusMetasMensais(meta);
+                } else {
+                    limparStatusMetasMensais();
+                }
+                
+                // Atualizar lista de metas
+                atualizarListaMetasMensais(metas);
+                
+            } catch (error) {
+                console.error('Erro ao carregar metas mensais:', error);
+            }
+        }
+        
+        // Atualizar status das metas mensais
+        function atualizarStatusMetasMensais(meta) {
+            document.getElementById('percentual-receita-mensal').textContent = `${meta.percentual_receita}%`;
+            document.getElementById('barra-receita-mensal').style.width = `${Math.min(meta.percentual_receita, 100)}%`;
+            document.getElementById('valor-receita-mensal').textContent = 
+                `${formatarMoeda(meta.receita_realizada)} / ${formatarMoeda(meta.meta_receita)}`;
+            
+            document.getElementById('percentual-despesa-mensal').textContent = `${meta.percentual_despesa}%`;
+            document.getElementById('barra-despesa-mensal').style.width = `${Math.min(meta.percentual_despesa, 100)}%`;
+            document.getElementById('valor-despesa-mensal').textContent = 
+                `${formatarMoeda(meta.despesa_realizada)} / ${formatarMoeda(meta.meta_despesa)}`;
+            
+            document.getElementById('percentual-investimento-mensal').textContent = `${meta.percentual_investimento}%`;
+            document.getElementById('barra-investimento-mensal').style.width = `${Math.min(meta.percentual_investimento, 100)}%`;
+            document.getElementById('valor-investimento-mensal').textContent = 
+                `${formatarMoeda(meta.investimento_realizado)} / ${formatarMoeda(meta.meta_investimento)}`;
+            
+            document.getElementById('percentual-poupanca-mensal').textContent = `${meta.percentual_poupanca}%`;
+            document.getElementById('barra-poupanca-mensal').style.width = `${Math.min(meta.percentual_poupanca, 100)}%`;
+            document.getElementById('valor-poupanca-mensal').textContent = 
+                `${formatarMoeda(meta.poupanca_realizada)} / ${formatarMoeda(meta.meta_poupanca)}`;
+            
+            // Atualizar status geral
+            const statusClasses = {
+                'excelente': 'bg-success',
+                'bom': 'bg-primary',
+                'regular': 'bg-warning',
+                'ruim': 'bg-danger'
+            };
+            const statusElement = document.getElementById('status-geral-mensal');
+            statusElement.textContent = `Status: ${meta.status_geral.charAt(0).toUpperCase() + meta.status_geral.slice(1)}`;
+            statusElement.className = `badge ${statusClasses[meta.status_geral] || 'bg-secondary'}`;
+        }
+        
+        // Limpar status das metas mensais
+        function limparStatusMetasMensais() {
+            document.getElementById('percentual-receita-mensal').textContent = '0%';
+            document.getElementById('barra-receita-mensal').style.width = '0%';
+            document.getElementById('valor-receita-mensal').textContent = 'R$ 0,00 / R$ 0,00';
+            
+            document.getElementById('percentual-despesa-mensal').textContent = '0%';
+            document.getElementById('barra-despesa-mensal').style.width = '0%';
+            document.getElementById('valor-despesa-mensal').textContent = 'R$ 0,00 / R$ 0,00';
+            
+            document.getElementById('percentual-investimento-mensal').textContent = '0%';
+            document.getElementById('barra-investimento-mensal').style.width = '0%';
+            document.getElementById('valor-investimento-mensal').textContent = 'R$ 0,00 / R$ 0,00';
+            
+            document.getElementById('percentual-poupanca-mensal').textContent = '0%';
+            document.getElementById('barra-poupanca-mensal').style.width = '0%';
+            document.getElementById('valor-poupanca-mensal').textContent = 'R$ 0,00 / R$ 0,00';
+            
+            document.getElementById('status-geral-mensal').textContent = 'Status: Sem metas';
+            document.getElementById('status-geral-mensal').className = 'badge bg-secondary';
+        }
+        
+        // Atualizar lista de metas mensais
+        function atualizarListaMetasMensais(metas) {
+            const container = document.getElementById('lista-metas-mensais');
+            
+            if (metas.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhuma meta mensal encontrada para ${mesAtual}/${anoAtual}</p>
+                        <button class="btn btn-primary" onclick="criarMetaMensal()">
+                            <i class="fas fa-plus me-2"></i>Criar Meta Mensal
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            metas.forEach(meta => {
+                const statusClasses = {
+                    'excelente': 'success',
+                    'bom': 'primary',
+                    'regular': 'warning',
+                    'ruim': 'danger'
+                };
+                
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h6 class="mb-1">Meta de ${mesAtual}/${anoAtual}</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted">Receitas: ${meta.percentual_receita}%</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Despesas: ${meta.percentual_despesa}%</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <span class="badge bg-${statusClasses[meta.status_geral] || 'secondary'}">${meta.status_geral}</span>
+                                    <div class="btn-group mt-2">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="editarMetaMensal(${meta.id})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deletarMetaMensal(${meta.id})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // Criar meta mensal
+        function criarMetaMensal() {
+            // Implementar modal para criar meta mensal
+            alert('Funcionalidade de criar meta mensal será implementada');
+        }
+        
+        // Editar meta mensal
+        function editarMetaMensal(metaId) {
+            // Implementar edição de meta mensal
+            alert('Funcionalidade de editar meta mensal será implementada');
+        }
+        
+        // Deletar meta mensal
+        async function deletarMetaMensal(metaId) {
+            if (confirm('Tem certeza que deseja deletar esta meta mensal?')) {
+                try {
+                    const response = await fetch(`/api/financeiro/metas-mensais/${metaId}`, {
+                        method: 'DELETE',
+                        headers
+                    });
+                    
+                    if (response.ok) {
+                        loadMetasMensais();
+                        alert('Meta mensal deletada com sucesso!');
+                    } else {
+                        alert('Erro ao deletar meta mensal');
+                    }
+                } catch (error) {
+                    console.error('Erro ao deletar meta mensal:', error);
+                    alert('Erro de conexão');
+                }
+            }
+        }
+        
+        // Modificar função showSection para incluir metas-mensais
+        function showSection(section) {
+            // Esconder todas as seções
+            document.querySelectorAll('.content-section').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Remover classe active de todos os links
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Mostrar seção selecionada
+            const targetSection = document.getElementById(section + '-section');
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
+            
+            // Adicionar classe active ao link
+            event.target.classList.add('active');
+            
+            // Carregar dados específicos da seção
+            switch(section) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'contas-pagar':
+                    loadContasPagar();
+                    break;
+                case 'contas-receber':
+                    loadContasReceber();
+                    break;
+                case 'metas':
+                    loadMetas();
+                    break;
+                case 'metas-mensais':
+                    loadMetasMensais();
+                    break;
+                case 'investimentos':
+                    loadInvestimentos();
+                    break;
+                case 'relatorios':
+                    loadRelatorios();
+                    break;
+            }
+        }
+        
+        // ==================== FUNCIONALIDADES DE DASHBOARD ====================
+        
+        // Obter modo do dashboard selecionado
+        function obterModoDashboard() {
+            const modoSelecionado = document.querySelector('input[name="dashboard-mode"]:checked');
+            return modoSelecionado ? modoSelecionado.value : 'mensal';
+        }
+        
+        // Atualizar labels do dashboard baseado no modo
+        function atualizarLabelsDashboard(modo) {
+            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            
+            if (modo === 'mensal') {
+                document.getElementById('saldo-label').textContent = 'Saldo do Mês';
+                document.getElementById('receitas-label').textContent = 'Receitas do Mês';
+                document.getElementById('despesas-label').textContent = 'Despesas do Mês';
+                document.getElementById('investimentos-label').textContent = 'Investimentos do Mês';
+                
+                document.getElementById('saldo-periodo').textContent = `${meses[mesAtual-1]} ${anoAtual}`;
+                document.getElementById('receitas-periodo').textContent = `${meses[mesAtual-1]} ${anoAtual}`;
+                document.getElementById('despesas-periodo').textContent = `${meses[mesAtual-1]} ${anoAtual}`;
+                document.getElementById('investimentos-periodo').textContent = `${meses[mesAtual-1]} ${anoAtual}`;
+                
+            } else if (modo === 'anual') {
+                document.getElementById('saldo-label').textContent = 'Saldo do Ano';
+                document.getElementById('receitas-label').textContent = 'Receitas do Ano';
+                document.getElementById('despesas-label').textContent = 'Despesas do Ano';
+                document.getElementById('investimentos-label').textContent = 'Investimentos do Ano';
+                
+                document.getElementById('saldo-periodo').textContent = `Ano ${anoAtual}`;
+                document.getElementById('receitas-periodo').textContent = `Ano ${anoAtual}`;
+                document.getElementById('despesas-periodo').textContent = `Ano ${anoAtual}`;
+                document.getElementById('investimentos-periodo').textContent = `Ano ${anoAtual}`;
+                
+            } else if (modo === 'total') {
+                document.getElementById('saldo-label').textContent = 'Saldo Total';
+                document.getElementById('receitas-label').textContent = 'Receitas Totais';
+                document.getElementById('despesas-label').textContent = 'Despesas Totais';
+                document.getElementById('investimentos-label').textContent = 'Investimentos Totais';
+                
+                document.getElementById('saldo-periodo').textContent = 'Todos os períodos';
+                document.getElementById('receitas-periodo').textContent = 'Todos os períodos';
+                document.getElementById('despesas-periodo').textContent = 'Todos os períodos';
+                document.getElementById('investimentos-periodo').textContent = 'Todos os períodos';
+            }
+        }
+        
+        // Adicionar event listeners para mudança de modo
+        function configurarEventListenersDashboard() {
+            // Event listeners para mudança de modo
+            document.querySelectorAll('input[name="dashboard-mode"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    loadDashboard();
+                });
+            });
+        }
+        
+        // Inicializar display do mês
+        atualizarDisplayMes();
+        
+        // Configurar event listeners do dashboard
+        configurarEventListenersDashboard();
     </script>
 </body>
 </html>

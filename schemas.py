@@ -265,3 +265,115 @@ class RelatorioCategoriaResponse(BaseModel):
     total: float
     percentual: float
     quantidade: int
+
+# Schemas para Relatórios Mensais
+class RelatorioMensalResponse(BaseModel):
+    mes: int
+    ano: int
+    total_receitas: float
+    total_despesas: float
+    saldo_mensal: float
+    total_investido: float
+    total_metas: float
+    receitas_por_categoria: List[RelatorioCategoriaResponse]
+    despesas_por_categoria: List[RelatorioCategoriaResponse]
+    contas_pagas: int
+    contas_vencidas: int
+    metas_concluidas: int
+    metas_ativas: int
+
+class FluxoCaixaMensalResponse(BaseModel):
+    mes: int
+    ano: int
+    saldo_inicial: float
+    entradas: float
+    saidas: float
+    saldo_final: float
+    variacao_mensal: float
+    percentual_variacao: float
+
+class ComparativoMensalResponse(BaseModel):
+    mes_atual: RelatorioMensalResponse
+    mes_anterior: RelatorioMensalResponse
+    variacao_receitas: float
+    variacao_despesas: float
+    variacao_saldo: float
+    tendencia: str  # "crescimento", "declinio", "estavel"
+
+class MetaMensalResponse(BaseModel):
+    mes: int
+    ano: int
+    meta_receita: float
+    meta_despesa: float
+    meta_investimento: float
+    meta_poupanca: float
+    receita_realizada: float
+    despesa_realizada: float
+    investimento_realizado: float
+    poupanca_realizada: float
+    percentual_receita: float
+    percentual_despesa: float
+    percentual_investimento: float
+    percentual_poupanca: float
+    status_geral: str  # "excelente", "bom", "regular", "ruim"
+
+class AlertasMensaisResponse(BaseModel):
+    contas_vencidas: List[ContaPagarResponse]
+    metas_atrasadas: List[MetaFinanceiraResponse]
+    investimentos_negativos: List[InvestimentoResponse]
+    saldo_negativo: bool
+    alertas_criticos: List[str]
+
+# Schemas para Metas Mensais
+class MetaMensalCreate(BaseModel):
+    mes: int
+    ano: int
+    meta_receita: float
+    meta_despesa: float
+    meta_investimento: float
+    meta_poupanca: float
+    observacoes: Optional[str] = None
+
+class MetaMensalUpdate(BaseModel):
+    meta_receita: Optional[float] = None
+    meta_despesa: Optional[float] = None
+    meta_investimento: Optional[float] = None
+    meta_poupanca: Optional[float] = None
+    observacoes: Optional[str] = None
+
+class MetaMensalResponse(BaseModel):
+    id: int
+    user_id: int
+    mes: int
+    ano: int
+    meta_receita: float
+    meta_despesa: float
+    meta_investimento: float
+    meta_poupanca: float
+    receita_realizada: float
+    despesa_realizada: float
+    investimento_realizado: float
+    poupanca_realizada: float
+    percentual_receita: float
+    percentual_despesa: float
+    percentual_investimento: float
+    percentual_poupanca: float
+    status_geral: str
+    observacoes: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+# Schema para Dashboard Mensal
+class DashboardMensalResponse(BaseModel):
+    mes: int
+    ano: int
+    resumo_mensal: RelatorioMensalResponse
+    fluxo_caixa: FluxoCaixaMensalResponse
+    comparativo: ComparativoMensalResponse
+    alertas: AlertasMensaisResponse
+    metas_mensais: Optional[MetaMensalResponse] = None
+    proximos_vencimentos: List[ContaPagarResponse]
+    metas_proximas: List[MetaFinanceiraResponse]
