@@ -94,3 +94,4 @@ filtros_despesas.append(func.strftime('%m', ContaPagar.data_vencimento) == f'{fi
 
 
 
+

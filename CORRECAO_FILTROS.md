@@ -84,3 +84,4 @@ filtros_despesas.append(func.strftime('%m', ContaPagar.data_pagamento) == f'{fil
 
 
 
+

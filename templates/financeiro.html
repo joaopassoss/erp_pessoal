@@ -1,951 +1,264 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Módulo Financeiro - ERP Pessoal</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        .sidebar {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .sidebar .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            margin: 0.25rem 0;
-        }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            color: white;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        .card {
-            border: none;
-            border-radius: 1rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
-        .card-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 1rem 1rem 0 0 !important;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-        }
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        body { font-family: 'Inter', sans-serif; }
+        .text-tce-main { color: #059669; }
+        .bg-tce-main { background-color: #059669; }
+        .group:hover .group-hover\:block { display: block; }
+        .chart-container {
+            position: relative;
+            height: 300px;
         }
         .status-badge {
             font-size: 0.75rem;
             padding: 0.25rem 0.5rem;
         }
-        .progress {
-            height: 0.5rem;
-            border-radius: 0.25rem;
-        }
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
-        .finance-card {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-        .finance-card.success {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        .finance-card.warning {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-        .finance-card.info {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        }
     </style>
 </head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar p-0">
-                <div class="p-3">
-                    <h4 class="text-white mb-4">
-                        <i class="fas fa-wallet me-2"></i>
-                        Financeiro
-                    </h4>
-                    <nav class="nav flex-column">
-                        <a class="nav-link active" href="#" onclick="showSection('dashboard')">
-                            <i class="fas fa-tachometer-alt me-2"></i>
-                            Dashboard
-                        </a>
-                        <a class="nav-link" href="#" onclick="showSection('contas-pagar')">
-                            <i class="fas fa-credit-card me-2"></i>
-                            Contas a Pagar
-                        </a>
-                        <a class="nav-link" href="#" onclick="showSection('contas-receber')">
-                            <i class="fas fa-money-bill-wave me-2"></i>
-                            Contas a Receber
-                        </a>
-                        <a class="nav-link" href="#" onclick="showSection('metas')">
-                            <i class="fas fa-bullseye me-2"></i>
-                            Metas Financeiras
-                        </a>
-                        <a class="nav-link" href="#" onclick="showSection('metas-mensais')">
-                            <i class="fas fa-calendar-alt me-2"></i>
-                            Metas Mensais
-                        </a>
-                        <a class="nav-link" href="#" onclick="showSection('investimentos')">
-                            <i class="fas fa-chart-line me-2"></i>
-                            Investimentos
-                        </a>
-                        <a class="nav-link" href="#" onclick="showSection('relatorios')">
-                            <i class="fas fa-chart-bar me-2"></i>
-                            Relatórios
-                        </a>
-                    </nav>
+<body class="bg-gray-50 text-slate-800 flex flex-col min-h-screen">
+    <div class="bg-emerald-950 text-emerald-100 py-1 text-xs border-b border-emerald-900">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="flex gap-4">
+                <a href="#conteudo" class="hover:text-white transition">Ir para Conteúdo [1]</a>
+                <a href="#menu" class="hover:text-white transition">Ir para Menu [2]</a>
+            </div>
+            <div class="flex gap-3 items-center">
+                <button class="hover:text-white font-bold" title="Alto Contraste">◐</button>
+                <button class="hover:text-white font-bold" title="Aumentar Fonte">A+</button>
+                <button class="hover:text-white font-bold" title="Diminuir Fonte">A-</button>
+                <span class="h-3 w-px bg-emerald-700 mx-1"></span>
+                <span class="font-bold text-emerald-400">VLibras</span>
+            </div>
+        </div>
+    </div>
+
+    <header class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 flex items-center justify-center font-bold">
+                        <span class="text-2xl text-emerald-700">ERP</span>
+                    </div>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xm font-bold text-gray-800">Módulo Financeiro</span>
+                    </div>
+                </div>
+
+                <nav class="hidden lg:flex items-center gap-1 text-sm font-medium text-gray-600">
+                    <a href="/dashboard" class="px-3 py-2 hover:text-emerald-700 transition">Dashboard</a>
+                    <a href="/profile" class="px-3 py-2 hover:text-emerald-700 transition">Perfil</a>
+                </nav>
+
+                <button class="lg:hidden p-2 text-gray-600"><i data-lucide="menu"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="bg-[#022c22] py-10 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-emerald-900 to-[#022c22]"></div>
+        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/connected.png')]"></div>
+        
+        <div class="container mx-auto px-6 relative z-10">
+            <h1 class="text-3xl font-bold text-white mb-2">Módulo Financeiro</h1>
+            <nav class="flex text-sm text-emerald-200/80">
+                <ol class="flex items-center gap-2">
+                    <li><a href="/dashboard" class="hover:text-white">Início</a></li>
+                    <li><i data-lucide="chevron-right" class="w-3 h-3"></i></li>
+                    <li class="text-white font-medium">Financeiro</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="flex flex-grow">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-emerald-900 text-white min-h-screen sticky top-20">
+            <div class="p-4">
+                <h4 class="font-bold mb-4 flex items-center gap-2">
+                    <i data-lucide="wallet" class="w-5 h-5"></i>
+                    Financeiro
+                </h4>
+                <nav class="space-y-1">
+                    <a href="#" onclick="showSection('dashboard')" class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-800 text-white">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                        Dashboard
+                    </a>
+                    <a href="#" onclick="showSection('contas-pagar')" class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-emerald-100 hover:bg-emerald-800 hover:text-white transition">
+                        <i data-lucide="credit-card" class="w-4 h-4"></i>
+                        Contas a Pagar
+                    </a>
+                    <a href="#" onclick="showSection('contas-receber')" class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-emerald-100 hover:bg-emerald-800 hover:text-white transition">
+                        <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+                        Contas a Receber
+                    </a>
+                    <a href="#" onclick="showSection('metas')" class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-emerald-100 hover:bg-emerald-800 hover:text-white transition">
+                        <i data-lucide="target" class="w-4 h-4"></i>
+                        Metas Financeiras
+                    </a>
+                    <a href="#" onclick="showSection('metas-mensais')" class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-emerald-100 hover:bg-emerald-800 hover:text-white transition">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                        Metas Mensais
+                    </a>
+                    <a href="#" onclick="showSection('investimentos')" class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-emerald-100 hover:bg-emerald-800 hover:text-white transition">
+                        <i data-lucide="trending-up" class="w-4 h-4"></i>
+                        Investimentos
+                    </a>
+                    <a href="#" onclick="showSection('relatorios')" class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-emerald-100 hover:bg-emerald-800 hover:text-white transition">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                        Relatórios
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="conteudo" class="flex-1 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <button onclick="alterarMes(-1)" class="px-3 py-2 border border-gray-300 hover:bg-gray-50 rounded-lg transition">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
+                    <button id="mes-atual-display" class="px-4 py-2 bg-tce-main text-white rounded-lg font-semibold flex items-center gap-2">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                        <span id="mes-nome">Dezembro 2024</span>
+                    </button>
+                    <button onclick="alterarMes(1)" class="px-3 py-2 border border-gray-300 hover:bg-gray-50 rounded-lg transition">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <a href="/dashboard" class="px-4 py-2 border border-gray-300 hover:bg-gray-50 rounded-lg transition flex items-center gap-2">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Voltar para a Principal
+                </a>
+            </div>
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="content-section">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
+                        Dashboard Financeiro
+                    </h2>
+                    <div class="flex items-center gap-3">
+                        <div class="flex border border-gray-300 rounded-lg overflow-hidden">
+                            <input type="radio" class="hidden" name="dashboard-mode" id="dashboard-mensal" value="mensal" checked>
+                            <label for="dashboard-mensal" class="px-4 py-2 border-r border-gray-300 hover:bg-gray-50 cursor-pointer flex items-center gap-1">
+                                <i data-lucide="calendar" class="w-4 h-4"></i>Mensal
+                            </label>
+                            <input type="radio" class="hidden" name="dashboard-mode" id="dashboard-anual" value="anual">
+                            <label for="dashboard-anual" class="px-4 py-2 border-r border-gray-300 hover:bg-gray-50 cursor-pointer flex items-center gap-1">
+                                <i data-lucide="calendar-days" class="w-4 h-4"></i>Anual
+                            </label>
+                            <input type="radio" class="hidden" name="dashboard-mode" id="dashboard-total" value="total">
+                            <label for="dashboard-total" class="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center gap-1">
+                                <i data-lucide="trending-up" class="w-4 h-4"></i>Total
+                            </label>
+                        </div>
+                        <button onclick="loadDashboard()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>Atualizar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cards de Resumo -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-gradient-to-br from-pink-500 to-red-500 text-white rounded-xl p-6 shadow-lg">
+                        <div class="text-center">
+                            <i data-lucide="wallet" class="w-8 h-8 mb-2 mx-auto"></i>
+                            <h5 class="font-semibold mb-1" id="saldo-label">Saldo do Mês</h5>
+                            <h3 class="text-2xl font-bold" id="saldo-atual">R$ 0,00</h3>
+                            <p class="text-sm text-white/80 mt-1" id="saldo-periodo">Outubro 2024</p>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-xl p-6 shadow-lg">
+                        <div class="text-center">
+                            <i data-lucide="arrow-up" class="w-8 h-8 mb-2 mx-auto"></i>
+                            <h5 class="font-semibold mb-1" id="receitas-label">Receitas</h5>
+                            <h3 class="text-2xl font-bold" id="receitas-mes">R$ 0,00</h3>
+                            <p class="text-sm text-white/80 mt-1" id="receitas-periodo">Outubro 2024</p>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-xl p-6 shadow-lg">
+                        <div class="text-center">
+                            <i data-lucide="arrow-down" class="w-8 h-8 mb-2 mx-auto"></i>
+                            <h5 class="font-semibold mb-1" id="despesas-label">Despesas</h5>
+                            <h3 class="text-2xl font-bold" id="despesas-mes">R$ 0,00</h3>
+                            <p class="text-sm text-white/80 mt-1" id="despesas-periodo">Outubro 2024</p>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-xl p-6 shadow-lg">
+                        <div class="text-center">
+                            <i data-lucide="trending-up" class="w-8 h-8 mb-2 mx-auto"></i>
+                            <h5 class="font-semibold mb-1" id="investimentos-label">Investimentos</h5>
+                            <h3 class="text-2xl font-bold" id="total-investido">R$ 0,00</h3>
+                            <p class="text-sm text-white/80 mt-1" id="investimentos-periodo">Outubro 2024</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico e Próximas Contas -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h5 class="font-semibold mb-4 flex items-center gap-2">
+                            <i data-lucide="line-chart" class="w-5 h-5"></i>
+                            Evolução Financeira (12 meses)
+                        </h5>
+                        <div class="chart-container">
+                            <canvas id="graficoEvolucao"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h5 class="font-semibold mb-4 flex items-center gap-2">
+                            <i data-lucide="clock" class="w-5 h-5"></i>
+                            Próximas Contas
+                        </h5>
+                        <div id="proximas-contas">
+                            <p class="text-gray-500">Carregando...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="mb-0"><i class="fas fa-wallet me-2"></i>Módulo Financeiro</h2>
-                    <div class="d-flex align-items-center gap-3">
-                        <!-- Seletor de Mês -->
-                        <div class="btn-group">
-                            <button class="btn btn-outline-primary" onclick="alterarMes(-1)">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <button class="btn btn-primary" id="mes-atual-display">
-                                <i class="fas fa-calendar me-2"></i>
-                                <span id="mes-nome">Dezembro 2024</span>
-                            </button>
-                            <button class="btn btn-outline-primary" onclick="alterarMes(1)">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                        <a href="/dashboard" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>Voltar para a Principal
-                        </a>
-                    </div>
-                </div>
-                <!-- Dashboard Section -->
-                <div id="dashboard-section" class="content-section">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard Financeiro</h2>
-                        <div class="d-flex align-items-center gap-3">
-                            <!-- Seletor de Modo do Dashboard -->
-                            <div class="btn-group" role="group">
-                                <input type="radio" class="btn-check" name="dashboard-mode" id="dashboard-mensal" value="mensal" checked>
-                                <label class="btn btn-outline-primary" for="dashboard-mensal">
-                                    <i class="fas fa-calendar-day me-1"></i>Mensal
-                                </label>
-                                
-                                <input type="radio" class="btn-check" name="dashboard-mode" id="dashboard-anual" value="anual">
-                                <label class="btn btn-outline-primary" for="dashboard-anual">
-                                    <i class="fas fa-calendar-alt me-1"></i>Anual
-                                </label>
-                                
-                                <input type="radio" class="btn-check" name="dashboard-mode" id="dashboard-total" value="total">
-                                <label class="btn btn-outline-primary" for="dashboard-total">
-                                    <i class="fas fa-chart-line me-1"></i>Total
-                                </label>
-                            </div>
-                            <button class="btn btn-primary" onclick="loadDashboard()">
-                                <i class="fas fa-sync-alt me-2"></i>Atualizar
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Cards de Resumo -->
-                    <div class="row mb-4">
-                        <div class="col-md-3 mb-3">
-                            <div class="card finance-card">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-wallet fa-2x mb-2"></i>
-                                    <h5 id="saldo-label">Saldo do Mês</h5>
-                                    <h3 id="saldo-atual">R$ 0,00</h3>
-                                    <small class="text-muted" id="saldo-periodo">Outubro 2024</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card finance-card success">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-arrow-up fa-2x mb-2"></i>
-                                    <h5 id="receitas-label">Receitas</h5>
-                                    <h3 id="receitas-mes">R$ 0,00</h3>
-                                    <small class="text-muted" id="receitas-periodo">Outubro 2024</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card finance-card warning">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-arrow-down fa-2x mb-2"></i>
-                                    <h5 id="despesas-label">Despesas</h5>
-                                    <h3 id="despesas-mes">R$ 0,00</h3>
-                                    <small class="text-muted" id="despesas-periodo">Outubro 2024</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card finance-card info">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-chart-line fa-2x mb-2"></i>
-                                    <h5 id="investimentos-label">Investimentos</h5>
-                                    <h3 id="total-investido">R$ 0,00</h3>
-                                    <small class="text-muted" id="investimentos-periodo">Outubro 2024</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Gráfico e Próximas Contas -->
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5><i class="fas fa-chart-area me-2"></i>Evolução Financeira (12 meses)</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="chart-container">
-                                        <canvas id="graficoEvolucao"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5><i class="fas fa-clock me-2"></i>Próximas Contas</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div id="proximas-contas">
-                                        <p class="text-muted">Carregando...</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Contas a Pagar Section -->
+            <div id="contas-pagar-section" class="content-section" style="display: none;">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <i data-lucide="credit-card" class="w-6 h-6"></i>
+                        Contas a Pagar
+                    </h2>
+                    <div class="flex gap-2">
+                        <button onclick="showModal('modalContaPagar')" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i>Nova Conta
+                        </button>
+                        <button onclick="showModal('modalContaParcelada')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>Conta Parcelada
+                        </button>
                     </div>
                 </div>
 
-                <!-- Contas a Pagar Section -->
-                <div id="contas-pagar-section" class="content-section" style="display: none;">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2><i class="fas fa-credit-card me-2"></i>Contas a Pagar</h2>
+                <!-- Filtros -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
-                            <button class="btn btn-primary me-2" onclick="showModal('modalContaPagar')">
-                                <i class="fas fa-plus me-2"></i>Nova Conta
-                            </button>
-                            <button class="btn btn-success" onclick="showModal('modalContaParcelada')">
-                                <i class="fas fa-calendar-alt me-2"></i>Conta Parcelada
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Filtros -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <label class="form-label">Status</label>
-                                    <select class="form-select" id="filtro-status-pagar">
-                                        <option value="">Todos</option>
-                                        <option value="pendente">Pendente</option>
-                                        <option value="pago">Pago</option>
-                                        <option value="vencido">Vencido</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Categoria</label>
-                                    <select class="form-select" id="filtro-categoria-pagar">
-                                        <option value="">Todas</option>
-                                        <option value="alimentacao">Alimentação</option>
-                                        <option value="transporte">Transporte</option>
-                                        <option value="moradia">Moradia</option>
-                                        <option value="saude">Saúde</option>
-                                        <option value="educacao">Educação</option>
-                                        <option value="lazer">Lazer</option>
-                                        <option value="outros">Outros</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Mês</label>
-                                    <select class="form-select" id="filtro-mes-pagar">
-                                        <option value="">Todos</option>
-                                        <option value="1">Janeiro</option>
-                                        <option value="2">Fevereiro</option>
-                                        <option value="3">Março</option>
-                                        <option value="4">Abril</option>
-                                        <option value="5">Maio</option>
-                                        <option value="6">Junho</option>
-                                        <option value="7">Julho</option>
-                                        <option value="8">Agosto</option>
-                                        <option value="9">Setembro</option>
-                                        <option value="10">Outubro</option>
-                                        <option value="11">Novembro</option>
-                                        <option value="12">Dezembro</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 d-flex align-items-end">
-                                    <button class="btn btn-outline-primary w-100" onclick="filtrarContasPagar()">
-                                        <i class="fas fa-filter me-2"></i>Filtrar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Lista de Contas -->
-                    <div class="card">
-                        <div class="card-body">
-                            <div id="lista-contas-pagar">
-                                <p class="text-muted">Carregando contas...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Contas a Receber Section -->
-                <div id="contas-receber-section" class="content-section" style="display: none;">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2><i class="fas fa-money-bill-wave me-2"></i>Contas a Receber</h2>
-                        <button class="btn btn-primary" onclick="showModal('modalContaReceber')">
-                            <i class="fas fa-plus me-2"></i>Nova Conta
-                        </button>
-                    </div>
-
-                    <!-- Filtros -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <label class="form-label">Status</label>
-                                    <select class="form-select" id="filtro-status-receber">
-                                        <option value="">Todos</option>
-                                        <option value="pendente">Pendente</option>
-                                        <option value="pago">Recebido</option>
-                                        <option value="vencido">Vencido</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Categoria</label>
-                                    <select class="form-select" id="filtro-categoria-receber">
-                                        <option value="">Todas</option>
-                                        <option value="alimentacao">Alimentação</option>
-                                        <option value="transporte">Transporte</option>
-                                        <option value="moradia">Moradia</option>
-                                        <option value="saude">Saúde</option>
-                                        <option value="educacao">Educação</option>
-                                        <option value="lazer">Lazer</option>
-                                        <option value="outros">Outros</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Mês</label>
-                                    <select class="form-select" id="filtro-mes-receber">
-                                        <option value="">Todos</option>
-                                        <option value="1">Janeiro</option>
-                                        <option value="2">Fevereiro</option>
-                                        <option value="3">Março</option>
-                                        <option value="4">Abril</option>
-                                        <option value="5">Maio</option>
-                                        <option value="6">Junho</option>
-                                        <option value="7">Julho</option>
-                                        <option value="8">Agosto</option>
-                                        <option value="9">Setembro</option>
-                                        <option value="10">Outubro</option>
-                                        <option value="11">Novembro</option>
-                                        <option value="12">Dezembro</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 d-flex align-items-end">
-                                    <button class="btn btn-outline-primary w-100" onclick="filtrarContasReceber()">
-                                        <i class="fas fa-filter me-2"></i>Filtrar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Lista de Contas -->
-                    <div class="card">
-                        <div class="card-body">
-                            <div id="lista-contas-receber">
-                                <p class="text-muted">Carregando contas...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Metas Financeiras Section -->
-                <div id="metas-section" class="content-section" style="display: none;">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2><i class="fas fa-bullseye me-2"></i>Metas Financeiras</h2>
-                        <button class="btn btn-primary" onclick="showModal('modalMeta')">
-                            <i class="fas fa-plus me-2"></i>Nova Meta
-                        </button>
-                    </div>
-
-                    <!-- Cards de Metas -->
-                    <div id="lista-metas" class="row">
-                        <p class="text-muted">Carregando metas...</p>
-                    </div>
-                </div>
-
-                <!-- Investimentos Section -->
-                <div id="investimentos-section" class="content-section" style="display: none;">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2><i class="fas fa-chart-line me-2"></i>Investimentos</h2>
-                        <button class="btn btn-primary" onclick="showModal('modalInvestimento')">
-                            <i class="fas fa-plus me-2"></i>Novo Investimento
-                        </button>
-                    </div>
-
-                    <!-- Filtros -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <label class="form-label">Tipo</label>
-                                    <select class="form-select" id="filtro-tipo-investimento">
-                                        <option value="">Todos</option>
-                                        <option value="poupanca">Poupança</option>
-                                        <option value="cdb">CDB</option>
-                                        <option value="lci">LCI</option>
-                                        <option value="lca">LCA</option>
-                                        <option value="fundos">Fundos</option>
-                                        <option value="acoes">Ações</option>
-                                        <option value="cripto">Cripto</option>
-                                        <option value="outros">Outros</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Status</label>
-                                    <select class="form-select" id="filtro-status-investimento">
-                                        <option value="">Todos</option>
-                                        <option value="true">Ativo</option>
-                                        <option value="false">Inativo</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 d-flex align-items-end">
-                                    <button class="btn btn-outline-primary w-100" onclick="filtrarInvestimentos()">
-                                        <i class="fas fa-filter me-2"></i>Filtrar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Lista de Investimentos -->
-                    <div class="card">
-                        <div class="card-body">
-                            <div id="lista-investimentos">
-                                <p class="text-muted">Carregando investimentos...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Metas Mensais Section -->
-                <div id="metas-mensais-section" class="content-section" style="display: none;">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2><i class="fas fa-calendar-alt me-2"></i>Metas Mensais</h2>
-                        <button class="btn btn-primary" onclick="criarMetaMensal()">
-                            <i class="fas fa-plus me-2"></i>Nova Meta Mensal
-                        </button>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5><i class="fas fa-target me-2"></i>Status das Metas do Mês</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div id="status-metas-mensais">
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <div class="d-flex justify-content-between mb-2">
-                                                    <span><i class="fas fa-arrow-up text-success me-2"></i>Receitas</span>
-                                                    <span id="percentual-receita-mensal">0%</span>
-                                                </div>
-                                                <div class="progress mb-3">
-                                                    <div class="progress-bar bg-success" id="barra-receita-mensal" style="width: 0%"></div>
-                                                </div>
-                                                <small class="text-muted" id="valor-receita-mensal">R$ 0,00 / R$ 0,00</small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="d-flex justify-content-between mb-2">
-                                                    <span><i class="fas fa-arrow-down text-danger me-2"></i>Despesas</span>
-                                                    <span id="percentual-despesa-mensal">0%</span>
-                                                </div>
-                                                <div class="progress mb-3">
-                                                    <div class="progress-bar bg-danger" id="barra-despesa-mensal" style="width: 0%"></div>
-                                                </div>
-                                                <small class="text-muted" id="valor-despesa-mensal">R$ 0,00 / R$ 0,00</small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="d-flex justify-content-between mb-2">
-                                                    <span><i class="fas fa-chart-line text-info me-2"></i>Investimentos</span>
-                                                    <span id="percentual-investimento-mensal">0%</span>
-                                                </div>
-                                                <div class="progress mb-3">
-                                                    <div class="progress-bar bg-info" id="barra-investimento-mensal" style="width: 0%"></div>
-                                                </div>
-                                                <small class="text-muted" id="valor-investimento-mensal">R$ 0,00 / R$ 0,00</small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="d-flex justify-content-between mb-2">
-                                                    <span><i class="fas fa-piggy-bank text-warning me-2"></i>Poupança</span>
-                                                    <span id="percentual-poupanca-mensal">0%</span>
-                                                </div>
-                                                <div class="progress mb-3">
-                                                    <div class="progress-bar bg-warning" id="barra-poupanca-mensal" style="width: 0%"></div>
-                                                </div>
-                                                <small class="text-muted" id="valor-poupanca-mensal">R$ 0,00 / R$ 0,00</small>
-                                            </div>
-                                        </div>
-                                        <div class="mt-3 text-center">
-                                            <span class="badge bg-secondary" id="status-geral-mensal">Status: Regular</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5><i class="fas fa-list me-2"></i>Histórico de Metas Mensais</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div id="lista-metas-mensais">
-                                        <p class="text-muted">Carregando metas mensais...</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Relatórios Section -->
-                <div id="relatorios-section" class="content-section" style="display: none;">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2><i class="fas fa-chart-bar me-2"></i>Relatórios</h2>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5><i class="fas fa-pie-chart me-2"></i>Despesas por Categoria</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="chart-container">
-                                        <canvas id="graficoCategorias"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5><i class="fas fa-chart-pie me-2"></i>Receitas por Categoria</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="chart-container">
-                                        <canvas id="graficoReceitas"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modals -->
-    <!-- Modal Conta a Pagar -->
-    <div class="modal fade" id="modalContaPagar" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Nova Conta a Pagar</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formContaPagar">
-                        <div class="mb-3">
-                            <label class="form-label">Descrição</label>
-                            <input type="text" class="form-control" id="descricaoPagar" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Valor</label>
-                            <input type="text" class="form-control" id="valorPagar" placeholder="R$ 0,00" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Data de Vencimento</label>
-                            <input type="date" class="form-control" id="vencimentoPagar" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Categoria</label>
-                            <select class="form-select" id="categoriaPagar" required>
-                                <option value="alimentacao">Alimentação</option>
-                                <option value="transporte">Transporte</option>
-                                <option value="moradia">Moradia</option>
-                                <option value="saude">Saúde</option>
-                                <option value="educacao">Educação</option>
-                                <option value="lazer">Lazer</option>
-                                <option value="outros">Outros</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Observações</label>
-                            <textarea class="form-control" id="observacoesPagar" rows="3"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="salvarContaPagar()">Salvar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Conta a Receber -->
-    <div class="modal fade" id="modalContaReceber" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Nova Conta a Receber</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formContaReceber">
-                        <div class="mb-3">
-                            <label class="form-label">Descrição</label>
-                            <input type="text" class="form-control" id="descricaoReceber" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Valor</label>
-                            <input type="text" class="form-control" id="valorReceber" placeholder="R$ 0,00" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Data de Vencimento</label>
-                            <input type="date" class="form-control" id="vencimentoReceber" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Categoria</label>
-                            <select class="form-select" id="categoriaReceber" required>
-                                <option value="alimentacao">Alimentação</option>
-                                <option value="transporte">Transporte</option>
-                                <option value="moradia">Moradia</option>
-                                <option value="saude">Saúde</option>
-                                <option value="educacao">Educação</option>
-                                <option value="lazer">Lazer</option>
-                                <option value="outros">Outros</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Observações</label>
-                            <textarea class="form-control" id="observacoesReceber" rows="3"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="salvarContaReceber()">Salvar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Conta Parcelada -->
-    <div class="modal fade" id="modalContaParcelada" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Nova Conta Parcelada</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formContaParcelada">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Descrição</label>
-                                    <input type="text" class="form-control" id="descricaoParcelada" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Categoria</label>
-                                    <select class="form-select" id="categoriaParcelada" required>
-                                        <option value="alimentacao">Alimentação</option>
-                                        <option value="transporte">Transporte</option>
-                                        <option value="moradia">Moradia</option>
-                                        <option value="saude">Saúde</option>
-                                        <option value="educacao">Educação</option>
-                                        <option value="lazer">Lazer</option>
-                                        <option value="outros">Outros</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Valor Total</label>
-                                    <input type="text" class="form-control" id="valorTotalParcelada" placeholder="R$ 0,00" required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Número de Parcelas</label>
-                                    <input type="number" class="form-control" id="totalParcelas" min="2" max="60" required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Valor da Parcela</label>
-                                    <input type="text" class="form-control" id="valorParcelaCalculado" placeholder="R$ 0,00" readonly>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Data da Primeira Parcela</label>
-                                    <input type="date" class="form-control" id="dataPrimeiraParcela" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Observações</label>
-                                    <textarea class="form-control" id="observacoesParcelada" rows="3"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Prévia das Parcelas:</strong>
-                            <div id="previaParcelas" class="mt-2"></div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-success" onclick="salvarContaParcelada()">Criar Parcelas</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Meta Financeira -->
-    <div class="modal fade" id="modalMeta" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Nova Meta Financeira</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formMeta">
-                        <div class="mb-3">
-                            <label class="form-label">Título</label>
-                            <input type="text" class="form-control" id="tituloMeta" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Descrição</label>
-                            <textarea class="form-control" id="descricaoMeta" rows="3"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Valor da Meta</label>
-                            <input type="text" class="form-control" id="valorMeta" placeholder="R$ 0,00" required>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Data de Início</label>
-                                    <input type="date" class="form-control" id="inicioMeta" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Data da Meta</label>
-                                    <input type="date" class="form-control" id="dataMeta" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Cor</label>
-                            <input type="color" class="form-control form-control-color" id="corMeta" value="#3B82F6">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="salvarMeta()">Salvar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Investimento -->
-    <div class="modal fade" id="modalInvestimento" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Novo Investimento</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formInvestimento">
-                        <div class="mb-3">
-                            <label class="form-label">Nome</label>
-                            <input type="text" class="form-control" id="nomeInvestimento" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tipo</label>
-                            <select class="form-select" id="tipoInvestimento" required>
-                                <option value="poupanca">Poupança</option>
-                                <option value="cdb">CDB</option>
-                                <option value="lci">LCI</option>
-                                <option value="lca">LCA</option>
-                                <option value="fundos">Fundos</option>
-                                <option value="acoes">Ações</option>
-                                <option value="cripto">Cripto</option>
-                                <option value="outros">Outros</option>
-                            </select>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Valor Investido</label>
-                                    <input type="text" class="form-control" id="valorInvestido" placeholder="R$ 0,00" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Valor Atual</label>
-                                    <input type="text" class="form-control" id="valorAtual" placeholder="R$ 0,00" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Data do Investimento</label>
-                            <input type="date" class="form-control" id="dataInvestimento" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Rentabilidade Anual (%)</label>
-                            <input type="number" class="form-control" id="rentabilidadeAnual" step="0.01">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Observações</label>
-                            <textarea class="form-control" id="observacoesInvestimento" rows="3"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="salvarInvestimento()">Salvar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Editar Conta a Pagar -->
-    <div class="modal fade" id="modalEditarContaPagar" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Editar Conta a Pagar</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formEditarContaPagar">
-                        <input type="hidden" id="editarContaPagarId">
-                        <div class="mb-3">
-                            <label class="form-label">Descrição</label>
-                            <input type="text" class="form-control" id="editarDescricaoPagar" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Valor</label>
-                            <input type="text" class="form-control" id="editarValorPagar" placeholder="R$ 0,00" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Data de Vencimento</label>
-                            <input type="date" class="form-control" id="editarVencimentoPagar" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Categoria</label>
-                            <select class="form-select" id="editarCategoriaPagar" required>
-                                <option value="alimentacao">Alimentação</option>
-                                <option value="transporte">Transporte</option>
-                                <option value="moradia">Moradia</option>
-                                <option value="saude">Saúde</option>
-                                <option value="educacao">Educação</option>
-                                <option value="lazer">Lazer</option>
-                                <option value="outros">Outros</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" id="editarStatusPagar" required>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select id="filtro-status-pagar" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="">Todos</option>
                                 <option value="pendente">Pendente</option>
                                 <option value="pago">Pago</option>
                                 <option value="vencido">Vencido</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Observações</label>
-                            <textarea class="form-control" id="editarObservacoesPagar" rows="3"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="salvarEdicaoContaPagar()">Salvar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Editar Conta a Receber -->
-    <div class="modal fade" id="modalEditarContaReceber" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Editar Conta a Receber</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formEditarContaReceber">
-                        <input type="hidden" id="editarContaReceberId">
-                        <div class="mb-3">
-                            <label class="form-label">Descrição</label>
-                            <input type="text" class="form-control" id="editarDescricaoReceber" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Valor</label>
-                            <input type="text" class="form-control" id="editarValorReceber" placeholder="R$ 0,00" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Data de Vencimento</label>
-                            <input type="date" class="form-control" id="editarVencimentoReceber" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Categoria</label>
-                            <select class="form-select" id="editarCategoriaReceber" required>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                            <select id="filtro-categoria-pagar" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="">Todas</option>
                                 <option value="alimentacao">Alimentação</option>
                                 <option value="transporte">Transporte</option>
                                 <option value="moradia">Moradia</option>
@@ -955,105 +268,148 @@
                                 <option value="outros">Outros</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" id="editarStatusReceber" required>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Mês</label>
+                            <select id="filtro-mes-pagar" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="">Todos</option>
+                                <option value="1">Janeiro</option>
+                                <option value="2">Fevereiro</option>
+                                <option value="3">Março</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maio</option>
+                                <option value="6">Junho</option>
+                                <option value="7">Julho</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="filtrarContasPagar()" class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                                <i data-lucide="filter" class="w-4 h-4"></i>Filtrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Contas -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div id="lista-contas-pagar">
+                        <p class="text-gray-500">Carregando contas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contas a Receber Section -->
+            <div id="contas-receber-section" class="content-section" style="display: none;">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                        Contas a Receber
+                    </h2>
+                    <button onclick="showModal('modalContaReceber')" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>Nova Conta
+                    </button>
+                </div>
+
+                <!-- Filtros -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select id="filtro-status-receber" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="">Todos</option>
                                 <option value="pendente">Pendente</option>
                                 <option value="pago">Recebido</option>
                                 <option value="vencido">Vencido</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Observações</label>
-                            <textarea class="form-control" id="editarObservacoesReceber" rows="3"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="salvarEdicaoContaReceber()">Salvar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Editar Meta -->
-    <div class="modal fade" id="modalEditarMeta" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Editar Meta Financeira</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formEditarMeta">
-                        <input type="hidden" id="editarMetaId">
-                        <div class="mb-3">
-                            <label class="form-label">Título</label>
-                            <input type="text" class="form-control" id="editarTituloMeta" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Descrição</label>
-                            <textarea class="form-control" id="editarDescricaoMeta" rows="3"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Valor da Meta</label>
-                            <input type="text" class="form-control" id="editarValorMeta" placeholder="R$ 0,00" required>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Data de Início</label>
-                                    <input type="date" class="form-control" id="editarInicioMeta" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Data da Meta</label>
-                                    <input type="date" class="form-control" id="editarDataMeta" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" id="editarStatusMeta" required>
-                                <option value="ativa">Ativa</option>
-                                <option value="pausada">Pausada</option>
-                                <option value="concluida">Concluída</option>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                            <select id="filtro-categoria-receber" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="">Todas</option>
+                                <option value="alimentacao">Alimentação</option>
+                                <option value="transporte">Transporte</option>
+                                <option value="moradia">Moradia</option>
+                                <option value="saude">Saúde</option>
+                                <option value="educacao">Educação</option>
+                                <option value="lazer">Lazer</option>
+                                <option value="outros">Outros</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Cor</label>
-                            <input type="color" class="form-control form-control-color" id="editarCorMeta" value="#3B82F6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Mês</label>
+                            <select id="filtro-mes-receber" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="">Todos</option>
+                                <option value="1">Janeiro</option>
+                                <option value="2">Fevereiro</option>
+                                <option value="3">Março</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maio</option>
+                                <option value="6">Junho</option>
+                                <option value="7">Julho</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
                         </div>
-                    </form>
+                        <div class="flex items-end">
+                            <button onclick="filtrarContasReceber()" class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                                <i data-lucide="filter" class="w-4 h-4"></i>Filtrar
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="salvarEdicaoMeta()">Salvar</button>
+
+                <!-- Lista de Contas -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div id="lista-contas-receber">
+                        <p class="text-gray-500">Carregando contas...</p>
+                    </div>
+                </div>
+                </div>
+
+            <!-- Metas Financeiras Section -->
+            <div id="metas-section" class="content-section" style="display: none;">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <i data-lucide="target" class="w-6 h-6"></i>
+                        Metas Financeiras
+                    </h2>
+                    <button onclick="showModal('modalMeta')" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>Nova Meta
+                    </button>
+                </div>
+
+                <!-- Cards de Metas -->
+                <div id="lista-metas" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <p class="text-gray-500">Carregando metas...</p>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Modal Editar Investimento -->
-    <div class="modal fade" id="modalEditarInvestimento" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Editar Investimento</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <!-- Investimentos Section -->
+            <div id="investimentos-section" class="content-section" style="display: none;">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-6 h-6"></i>
+                        Investimentos
+                    </h2>
+                    <button onclick="showModal('modalInvestimento')" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>Novo Investimento
+                    </button>
                 </div>
-                <div class="modal-body">
-                    <form id="formEditarInvestimento">
-                        <input type="hidden" id="editarInvestimentoId">
-                        <div class="mb-3">
-                            <label class="form-label">Nome</label>
-                            <input type="text" class="form-control" id="editarNomeInvestimento" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tipo</label>
-                            <select class="form-select" id="editarTipoInvestimento" required>
+
+                <!-- Filtros -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                            <select id="filtro-tipo-investimento" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="">Todos</option>
                                 <option value="poupanca">Poupança</option>
                                 <option value="cdb">CDB</option>
                                 <option value="lci">LCI</option>
@@ -1064,84 +420,713 @@
                                 <option value="outros">Outros</option>
                             </select>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Valor Investido</label>
-                                    <input type="text" class="form-control" id="editarValorInvestido" placeholder="R$ 0,00" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Valor Atual</label>
-                                    <input type="text" class="form-control" id="editarValorAtual" placeholder="R$ 0,00" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Data do Investimento</label>
-                            <input type="date" class="form-control" id="editarDataInvestimento" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Rentabilidade Anual (%)</label>
-                            <input type="number" class="form-control" id="editarRentabilidadeAnual" step="0.01">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" id="editarAtivoInvestimento" required>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select id="filtro-status-investimento" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="">Todos</option>
                                 <option value="true">Ativo</option>
                                 <option value="false">Inativo</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Observações</label>
-                            <textarea class="form-control" id="editarObservacoesInvestimento" rows="3"></textarea>
+                        <div class="flex items-end">
+                            <button onclick="filtrarInvestimentos()" class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                                <i data-lucide="filter" class="w-4 h-4"></i>Filtrar
+                            </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="salvarEdicaoInvestimento()">Salvar</button>
+
+                <!-- Lista de Investimentos -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div id="lista-investimentos">
+                        <p class="text-gray-500">Carregando investimentos...</p>
+                    </div>
                 </div>
+                </div>
+
+            <!-- Metas Mensais Section -->
+            <div id="metas-mensais-section" class="content-section" style="display: none;">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <i data-lucide="calendar" class="w-6 h-6"></i>
+                        Metas Mensais
+                    </h2>
+                    <button onclick="criarMetaMensal()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>Nova Meta Mensal
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 mb-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h5 class="font-semibold mb-4 flex items-center gap-2">
+                            <i data-lucide="target" class="w-5 h-5"></i>
+                            Status das Metas do Mês
+                        </h5>
+                        <div id="status-metas-mensais">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div>
+                                    <div class="flex justify-between mb-2">
+                                        <span class="flex items-center gap-2 text-green-600"><i data-lucide="arrow-up" class="w-4 h-4"></i>Receitas</span>
+                                        <span id="percentual-receita-mensal" class="font-semibold">0%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                                        <div class="bg-green-500 h-2 rounded-full transition-all" id="barra-receita-mensal" style="width: 0%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500" id="valor-receita-mensal">R$ 0,00 / R$ 0,00</p>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-2">
+                                        <span class="flex items-center gap-2 text-red-600"><i data-lucide="arrow-down" class="w-4 h-4"></i>Despesas</span>
+                                        <span id="percentual-despesa-mensal" class="font-semibold">0%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                                        <div class="bg-red-500 h-2 rounded-full transition-all" id="barra-despesa-mensal" style="width: 0%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500" id="valor-despesa-mensal">R$ 0,00 / R$ 0,00</p>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-2">
+                                        <span class="flex items-center gap-2 text-blue-600"><i data-lucide="trending-up" class="w-4 h-4"></i>Investimentos</span>
+                                        <span id="percentual-investimento-mensal" class="font-semibold">0%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                                        <div class="bg-blue-500 h-2 rounded-full transition-all" id="barra-investimento-mensal" style="width: 0%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500" id="valor-investimento-mensal">R$ 0,00 / R$ 0,00</p>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-2">
+                                        <span class="flex items-center gap-2 text-yellow-600"><i data-lucide="piggy-bank" class="w-4 h-4"></i>Poupança</span>
+                                        <span id="percentual-poupanca-mensal" class="font-semibold">0%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                                        <div class="bg-yellow-500 h-2 rounded-full transition-all" id="barra-poupanca-mensal" style="width: 0%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500" id="valor-poupanca-mensal">R$ 0,00 / R$ 0,00</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <span class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800" id="status-geral-mensal">Status: Regular</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h5 class="font-semibold mb-4 flex items-center gap-2">
+                        <i data-lucide="list" class="w-5 h-5"></i>
+                        Histórico de Metas Mensais
+                    </h5>
+                    <div id="lista-metas-mensais">
+                        <p class="text-gray-500">Carregando metas mensais...</p>
+                    </div>
+                </div>
+                </div>
+
+            <!-- Relatórios Section -->
+            <div id="relatorios-section" class="content-section" style="display: none;">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                        Relatórios
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h5 class="font-semibold mb-4 flex items-center gap-2">
+                            <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                            Despesas por Categoria
+                        </h5>
+                        <div class="chart-container">
+                            <canvas id="graficoCategorias"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h5 class="font-semibold mb-4 flex items-center gap-2">
+                            <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                            Receitas por Categoria
+                        </h5>
+                        <div class="chart-container">
+                            <canvas id="graficoReceitas"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="bg-emerald-950 text-emerald-100 py-6 mt-auto">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
+                <div>
+                    <h3 class="font-bold text-white mb-3">Sistema ERP</h3>
+                    <p class="text-sm text-emerald-200/80">Gestão financeira pessoal</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white mb-3">Links Úteis</h3>
+                    <ul class="space-y-1 text-sm text-emerald-200/80">
+                        <li><a href="/dashboard" class="hover:text-white transition">Dashboard</a></li>
+                        <li><a href="/profile" class="hover:text-white transition">Perfil</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white mb-3">Contato</h3>
+                    <p class="text-sm text-emerald-200/80">Suporte disponível 24/7</p>
+                </div>
+            </div>
+            <div class="border-t border-emerald-800 pt-4 text-center text-sm text-emerald-200/60">
+                <p>&copy; 2024 ERP Pessoal. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <!-- Modal Conta a Pagar -->
+    <div id="modalContaPagar" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h5 class="text-lg font-semibold">Nova Conta a Pagar</h5>
+                <button type="button" onclick="document.getElementById('modalContaPagar').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="formContaPagar">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <input type="text" id="descricaoPagar" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Valor</label>
+                        <input type="text" id="valorPagar" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data de Vencimento</label>
+                        <input type="date" id="vencimentoPagar" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                        <select id="categoriaPagar" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="alimentacao">Alimentação</option>
+                            <option value="transporte">Transporte</option>
+                            <option value="moradia">Moradia</option>
+                            <option value="saude">Saúde</option>
+                            <option value="educacao">Educação</option>
+                            <option value="lazer">Lazer</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                        <textarea id="observacoesPagar" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t border-gray-200">
+                <button type="button" onclick="document.getElementById('modalContaPagar').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
+                <button type="button" onclick="salvarContaPagar()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Conta a Receber -->
+    <div id="modalContaReceber" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h5 class="text-lg font-semibold">Nova Conta a Receber</h5>
+                <button type="button" onclick="document.getElementById('modalContaReceber').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="formContaReceber">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <input type="text" id="descricaoReceber" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Valor</label>
+                        <input type="text" id="valorReceber" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data de Vencimento</label>
+                        <input type="date" id="vencimentoReceber" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                        <select id="categoriaReceber" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="alimentacao">Alimentação</option>
+                            <option value="transporte">Transporte</option>
+                            <option value="moradia">Moradia</option>
+                            <option value="saude">Saúde</option>
+                            <option value="educacao">Educação</option>
+                            <option value="lazer">Lazer</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                        <textarea id="observacoesReceber" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t border-gray-200">
+                <button type="button" onclick="document.getElementById('modalContaReceber').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
+                <button type="button" onclick="salvarContaReceber()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Conta Parcelada -->
+    <div id="modalContaParcelada" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h5 class="text-lg font-semibold">Nova Conta Parcelada</h5>
+                <button type="button" onclick="document.getElementById('modalContaParcelada').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="formContaParcelada">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                            <input type="text" id="descricaoParcelada" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                            <select id="categoriaParcelada" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="alimentacao">Alimentação</option>
+                                <option value="transporte">Transporte</option>
+                                <option value="moradia">Moradia</option>
+                                <option value="saude">Saúde</option>
+                                <option value="educacao">Educação</option>
+                                <option value="lazer">Lazer</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Valor Total</label>
+                            <input type="text" id="valorTotalParcelada" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Número de Parcelas</label>
+                            <input type="number" id="totalParcelas" min="2" max="60" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Valor da Parcela</label>
+                            <input type="text" id="valorParcelaCalculado" placeholder="R$ 0,00" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Data da Primeira Parcela</label>
+                            <input type="date" id="dataPrimeiraParcela" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                            <textarea id="observacoesParcelada" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-start gap-2">
+                            <i data-lucide="info" class="w-5 h-5 text-blue-600 mt-0.5"></i>
+                            <div>
+                                <strong class="block text-blue-900 mb-2">Prévia das Parcelas:</strong>
+                                <div id="previaParcelas" class="text-sm text-blue-800"></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t border-gray-200">
+                <button type="button" onclick="document.getElementById('modalContaParcelada').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
+                <button type="button" onclick="salvarContaParcelada()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Criar Parcelas</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Meta Financeira -->
+    <div id="modalMeta" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h5 class="text-lg font-semibold">Nova Meta Financeira</h5>
+                <button type="button" onclick="document.getElementById('modalMeta').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="formMeta">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                        <input type="text" id="tituloMeta" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <textarea id="descricaoMeta" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Valor da Meta</label>
+                        <input type="text" id="valorMeta" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Data de Início</label>
+                            <input type="date" id="inicioMeta" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Data da Meta</label>
+                            <input type="date" id="dataMeta" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cor</label>
+                        <input type="color" id="corMeta" value="#3B82F6" class="w-full h-10 border border-gray-300 rounded-lg cursor-pointer">
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t border-gray-200">
+                <button type="button" onclick="document.getElementById('modalMeta').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
+                <button type="button" onclick="salvarMeta()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Investimento -->
+    <div id="modalInvestimento" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h5 class="text-lg font-semibold">Novo Investimento</h5>
+                <button type="button" onclick="document.getElementById('modalInvestimento').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="formInvestimento">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome</label>
+                        <input type="text" id="nomeInvestimento" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                        <select id="tipoInvestimento" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="poupanca">Poupança</option>
+                            <option value="cdb">CDB</option>
+                            <option value="lci">LCI</option>
+                            <option value="lca">LCA</option>
+                            <option value="fundos">Fundos</option>
+                            <option value="acoes">Ações</option>
+                            <option value="cripto">Cripto</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Valor Investido</label>
+                            <input type="text" id="valorInvestido" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Valor Atual</label>
+                            <input type="text" id="valorAtual" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data do Investimento</label>
+                        <input type="date" id="dataInvestimento" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rentabilidade Anual (%)</label>
+                        <input type="number" id="rentabilidadeAnual" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                        <textarea id="observacoesInvestimento" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t border-gray-200">
+                <button type="button" onclick="document.getElementById('modalInvestimento').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
+                <button type="button" onclick="salvarInvestimento()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Conta a Pagar -->
+    <div id="modalEditarContaPagar" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h5 class="text-lg font-semibold">Editar Conta a Pagar</h5>
+                <button type="button" onclick="document.getElementById('modalEditarContaPagar').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="formEditarContaPagar">
+                    <input type="hidden" id="editarContaPagarId">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <input type="text" id="editarDescricaoPagar" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Valor</label>
+                        <input type="text" id="editarValorPagar" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data de Vencimento</label>
+                        <input type="date" id="editarVencimentoPagar" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                        <select id="editarCategoriaPagar" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="alimentacao">Alimentação</option>
+                            <option value="transporte">Transporte</option>
+                            <option value="moradia">Moradia</option>
+                            <option value="saude">Saúde</option>
+                            <option value="educacao">Educação</option>
+                            <option value="lazer">Lazer</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="editarStatusPagar" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="pendente">Pendente</option>
+                            <option value="pago">Pago</option>
+                            <option value="vencido">Vencido</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                        <textarea id="editarObservacoesPagar" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t border-gray-200">
+                <button type="button" onclick="document.getElementById('modalEditarContaPagar').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
+                <button type="button" onclick="salvarEdicaoContaPagar()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Conta a Receber -->
+    <div id="modalEditarContaReceber" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h5 class="text-lg font-semibold">Editar Conta a Receber</h5>
+                <button type="button" onclick="document.getElementById('modalEditarContaReceber').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="formEditarContaReceber">
+                    <input type="hidden" id="editarContaReceberId">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <input type="text" id="editarDescricaoReceber" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Valor</label>
+                        <input type="text" id="editarValorReceber" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data de Vencimento</label>
+                        <input type="date" id="editarVencimentoReceber" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                        <select id="editarCategoriaReceber" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="alimentacao">Alimentação</option>
+                            <option value="transporte">Transporte</option>
+                            <option value="moradia">Moradia</option>
+                            <option value="saude">Saúde</option>
+                            <option value="educacao">Educação</option>
+                            <option value="lazer">Lazer</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="editarStatusReceber" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="pendente">Pendente</option>
+                            <option value="pago">Recebido</option>
+                            <option value="vencido">Vencido</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                        <textarea id="editarObservacoesReceber" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t border-gray-200">
+                <button type="button" onclick="document.getElementById('modalEditarContaReceber').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
+                <button type="button" onclick="salvarEdicaoContaReceber()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Meta -->
+    <div id="modalEditarMeta" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h5 class="text-lg font-semibold">Editar Meta Financeira</h5>
+                <button type="button" onclick="document.getElementById('modalEditarMeta').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="formEditarMeta">
+                    <input type="hidden" id="editarMetaId">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                        <input type="text" id="editarTituloMeta" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <textarea id="editarDescricaoMeta" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Valor da Meta</label>
+                        <input type="text" id="editarValorMeta" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Data de Início</label>
+                            <input type="date" id="editarInicioMeta" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Data da Meta</label>
+                            <input type="date" id="editarDataMeta" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="editarStatusMeta" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="ativa">Ativa</option>
+                            <option value="pausada">Pausada</option>
+                            <option value="concluida">Concluída</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cor</label>
+                        <input type="color" id="editarCorMeta" value="#3B82F6" class="w-full h-10 border border-gray-300 rounded-lg cursor-pointer">
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t border-gray-200">
+                <button type="button" onclick="document.getElementById('modalEditarMeta').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
+                <button type="button" onclick="salvarEdicaoMeta()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Investimento -->
+    <div id="modalEditarInvestimento" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h5 class="text-lg font-semibold">Editar Investimento</h5>
+                <button type="button" onclick="document.getElementById('modalEditarInvestimento').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="formEditarInvestimento">
+                    <input type="hidden" id="editarInvestimentoId">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome</label>
+                        <input type="text" id="editarNomeInvestimento" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                        <select id="editarTipoInvestimento" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="poupanca">Poupança</option>
+                            <option value="cdb">CDB</option>
+                            <option value="lci">LCI</option>
+                            <option value="lca">LCA</option>
+                            <option value="fundos">Fundos</option>
+                            <option value="acoes">Ações</option>
+                            <option value="cripto">Cripto</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Valor Investido</label>
+                            <input type="text" id="editarValorInvestido" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Valor Atual</label>
+                            <input type="text" id="editarValorAtual" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data do Investimento</label>
+                        <input type="date" id="editarDataInvestimento" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rentabilidade Anual (%)</label>
+                        <input type="number" id="editarRentabilidadeAnual" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="editarAtivoInvestimento" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="true">Ativo</option>
+                            <option value="false">Inativo</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+                        <textarea id="editarObservacoesInvestimento" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t border-gray-200">
+                <button type="button" onclick="document.getElementById('modalEditarInvestimento').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
+                <button type="button" onclick="salvarEdicaoInvestimento()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition">Salvar</button>
             </div>
         </div>
     </div>
 
     <!-- Modal Transação de Meta -->
-    <div class="modal fade" id="modalTransacaoMeta" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Adicionar Valor à Meta</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formTransacaoMeta">
-                        <input type="hidden" id="metaIdTransacao">
-                        <div class="mb-3">
-                            <label class="form-label">Valor</label>
-                            <input type="text" class="form-control" id="valorTransacao" placeholder="R$ 0,00" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Descrição</label>
-                            <input type="text" class="form-control" id="descricaoTransacao">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Data da Transação</label>
-                            <input type="date" class="form-control" id="dataTransacao" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="salvarTransacaoMeta()">Salvar</button>
-                </div>
+    <div id="modalTransacaoMeta" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h5 class="text-lg font-semibold">Adicionar Valor à Meta</h5>
+                <button type="button" onclick="document.getElementById('modalTransacaoMeta').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="formTransacaoMeta">
+                    <input type="hidden" id="metaIdTransacao">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Valor</label>
+                        <input type="text" id="valorTransacao" placeholder="R$ 0,00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <input type="text" id="descricaoTransacao" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data da Transação</label>
+                        <input type="date" id="dataTransacao" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                </form>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t border-gray-200">
+                <button type="button" onclick="document.getElementById('modalTransacaoMeta').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
+                <button type="button" onclick="salvarTransacaoMeta()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition">Salvar</button>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Inicializar Lucide Icons
+        lucide.createIcons();
+
         // Variáveis globais
         let token = localStorage.getItem('token');
         let graficoEvolucao = null;
@@ -1163,14 +1148,18 @@
             
             // Remover classe active de todos os links
             document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
+                link.classList.remove('bg-emerald-800', 'text-white');
+                link.classList.add('text-emerald-100');
             });
             
             // Mostrar seção selecionada
             document.getElementById(sectionName + '-section').style.display = 'block';
             
             // Adicionar classe active ao link
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('bg-emerald-800', 'text-white');
+                event.target.classList.remove('text-emerald-100');
+            }
             
             // Carregar dados da seção
             switch(sectionName) {
@@ -1197,8 +1186,12 @@
 
         // Função para mostrar modais
         function showModal(modalId) {
-            const modal = new bootstrap.Modal(document.getElementById(modalId));
-            modal.show();
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                lucide.createIcons();
+            }
         }
 
         // Função para formatar moeda
@@ -1255,12 +1248,12 @@
         // Função para obter status badge
         function getStatusBadge(status) {
             const statusMap = {
-                'pendente': 'warning',
-                'pago': 'success',
-                'vencido': 'danger',
-                'cancelado': 'secondary'
+                'pendente': 'bg-yellow-100 text-yellow-800',
+                'pago': 'bg-green-100 text-green-800',
+                'vencido': 'bg-red-100 text-red-800',
+                'cancelado': 'bg-gray-100 text-gray-800'
             };
-            return `<span class="badge bg-${statusMap[status]} status-badge">${status.toUpperCase()}</span>`;
+            return `<span class="px-2 py-1 rounded-full text-xs font-medium ${statusMap[status] || 'bg-gray-100 text-gray-800'}">${status.toUpperCase()}</span>`;
         }
 
         // Carregar Dashboard
@@ -1293,21 +1286,19 @@
                 
                 // Carregar próximas contas
                 const proximasContasHtml = data.proximas_contas.map(conta => `
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="flex justify-between items-center mb-3 pb-3 border-b border-gray-200 last:border-0">
                         <div>
-                            <strong>${conta.descricao}</strong>
-                            <br>
-                            <small class="text-muted">Vence em ${formatarData(conta.data_vencimento)}</small>
+                            <strong class="font-semibold">${conta.descricao}</strong>
+                            <p class="text-sm text-gray-500 mt-1">Vence em ${formatarData(conta.data_vencimento)}</p>
                         </div>
-                        <div class="text-end">
-                            <strong>${formatarMoeda(conta.valor)}</strong>
-                            <br>
-                            ${getStatusBadge(conta.status)}
+                        <div class="text-right">
+                            <strong class="font-bold block">${formatarMoeda(conta.valor)}</strong>
+                            <div class="mt-1">${getStatusBadge(conta.status)}</div>
                         </div>
                     </div>
                 `).join('');
                 
-                document.getElementById('proximas-contas').innerHTML = proximasContasHtml || '<p class="text-muted">Nenhuma conta próxima</p>';
+                document.getElementById('proximas-contas').innerHTML = proximasContasHtml || '<p class="text-gray-500">Nenhuma conta próxima</p>';
                 
                 // Carregar gráfico de evolução
                 loadGraficoEvolucao();
@@ -1374,51 +1365,48 @@
                 const contas = await response.json();
                 
                 const contasHtml = contas.map(conta => `
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-6">
-                                    <h6 class="mb-1">
-                                        ${conta.descricao}
-                                        ${conta.is_parcelada ? 
-                                            `<span class="badge bg-info ms-2">Parcela ${conta.parcela_atual}/${conta.total_parcelas}</span>` : ''
-                                        }
-                                    </h6>
-                                    <small class="text-muted">${conta.categoria} • Vence em ${formatarData(conta.data_vencimento)}</small>
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 mb-4 hover:shadow-md transition">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h6 class="font-semibold">${conta.descricao}</h6>
                                     ${conta.is_parcelada ? 
-                                        `<small class="text-muted d-block">Valor da parcela: ${formatarMoeda(conta.valor_parcela)}</small>` : ''
+                                        `<span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">Parcela ${conta.parcela_atual}/${conta.total_parcelas}</span>` : ''
                                     }
                                 </div>
-                                <div class="col-md-3 text-center">
-                                    <h5 class="mb-0">${formatarMoeda(conta.valor)}</h5>
-                                </div>
-                                <div class="col-md-3 text-end">
-                                    ${getStatusBadge(conta.status)}
-                                    <div class="btn-group mt-2">
-                                        <button class="btn btn-sm btn-outline-primary" onclick="editarContaPagar(${conta.id})">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        ${conta.is_parcelada && conta.status === 'pendente' ? 
-                                            `<button class="btn btn-sm btn-outline-warning" onclick="anteciparParcela(${conta.id})" title="Antecipar Parcela">
-                                                <i class="fas fa-calendar-plus"></i>
-                                            </button>` : ''
-                                        }
-                                        ${conta.status === 'pendente' ? 
-                                            `<button class="btn btn-sm btn-outline-success" onclick="marcarComoPago(${conta.id})">
-                                                <i class="fas fa-check"></i>
-                                            </button>` : ''
-                                        }
-                                        <button class="btn btn-sm btn-outline-danger" onclick="deletarContaPagar(${conta.id})">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                                <p class="text-sm text-gray-500">${conta.categoria} • Vence em ${formatarData(conta.data_vencimento)}</p>
+                                ${conta.is_parcelada ? 
+                                    `<p class="text-xs text-gray-400 mt-1">Valor da parcela: ${formatarMoeda(conta.valor_parcela)}</p>` : ''
+                                }
+                            </div>
+                            <div class="text-center md:text-right">
+                                <div class="text-xl font-bold mb-2">${formatarMoeda(conta.valor)}</div>
+                                <div class="mb-2">${getStatusBadge(conta.status)}</div>
+                                <div class="flex gap-2 justify-center md:justify-end">
+                                    <button onclick="editarContaPagar(${conta.id})" class="p-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+                                        <i data-lucide="edit" class="w-4 h-4"></i>
+                                    </button>
+                                    ${conta.is_parcelada && conta.status === 'pendente' ? 
+                                        `<button onclick="anteciparParcela(${conta.id})" title="Antecipar Parcela" class="p-2 border border-yellow-300 text-yellow-600 rounded-lg hover:bg-yellow-50 transition">
+                                            <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                                        </button>` : ''
+                                    }
+                                    ${conta.status === 'pendente' ? 
+                                        `<button onclick="marcarComoPago(${conta.id})" class="p-2 border border-green-300 text-green-600 rounded-lg hover:bg-green-50 transition">
+                                            <i data-lucide="check" class="w-4 h-4"></i>
+                                        </button>` : ''
+                                    }
+                                    <button onclick="deletarContaPagar(${conta.id})" class="p-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition">
+                                        <i data-lucide="trash" class="w-4 h-4"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `).join('');
                 
-                document.getElementById('lista-contas-pagar').innerHTML = contasHtml || '<p class="text-muted">Nenhuma conta encontrada</p>';
+                document.getElementById('lista-contas-pagar').innerHTML = contasHtml || '<p class="text-gray-500">Nenhuma conta encontrada</p>';
+                lucide.createIcons();
                 
             } catch (error) {
                 console.error('Erro ao carregar contas a pagar:', error);
@@ -1432,38 +1420,35 @@
                 const contas = await response.json();
                 
                 const contasHtml = contas.map(conta => `
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-6">
-                                    <h6 class="mb-1">${conta.descricao}</h6>
-                                    <small class="text-muted">${conta.categoria} • Vence em ${formatarData(conta.data_vencimento)}</small>
-                                </div>
-                                <div class="col-md-3 text-center">
-                                    <h5 class="mb-0">${formatarMoeda(conta.valor)}</h5>
-                                </div>
-                                <div class="col-md-3 text-end">
-                                    ${getStatusBadge(conta.status)}
-                                    <div class="btn-group mt-2">
-                                        <button class="btn btn-sm btn-outline-primary" onclick="editarContaReceber(${conta.id})">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        ${conta.status === 'pendente' ? 
-                                            `<button class="btn btn-sm btn-outline-success" onclick="marcarComoRecebido(${conta.id})">
-                                                <i class="fas fa-check"></i>
-                                            </button>` : ''
-                                        }
-                                        <button class="btn btn-sm btn-outline-danger" onclick="deletarContaReceber(${conta.id})">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 mb-4 hover:shadow-md transition">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div class="flex-1">
+                                <h6 class="font-semibold mb-1">${conta.descricao}</h6>
+                                <p class="text-sm text-gray-500">${conta.categoria} • Vence em ${formatarData(conta.data_vencimento)}</p>
+                            </div>
+                            <div class="text-center md:text-right">
+                                <div class="text-xl font-bold mb-2">${formatarMoeda(conta.valor)}</div>
+                                <div class="mb-2">${getStatusBadge(conta.status)}</div>
+                                <div class="flex gap-2 justify-center md:justify-end">
+                                    <button onclick="editarContaReceber(${conta.id})" class="p-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+                                        <i data-lucide="edit" class="w-4 h-4"></i>
+                                    </button>
+                                    ${conta.status === 'pendente' ? 
+                                        `<button onclick="marcarComoRecebido(${conta.id})" class="p-2 border border-green-300 text-green-600 rounded-lg hover:bg-green-50 transition">
+                                            <i data-lucide="check" class="w-4 h-4"></i>
+                                        </button>` : ''
+                                    }
+                                    <button onclick="deletarContaReceber(${conta.id})" class="p-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition">
+                                        <i data-lucide="trash" class="w-4 h-4"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `).join('');
                 
-                document.getElementById('lista-contas-receber').innerHTML = contasHtml || '<p class="text-muted">Nenhuma conta encontrada</p>';
+                document.getElementById('lista-contas-receber').innerHTML = contasHtml || '<p class="text-gray-500">Nenhuma conta encontrada</p>';
+                lucide.createIcons();
                 
             } catch (error) {
                 console.error('Erro ao carregar contas a receber:', error);
@@ -1481,52 +1466,53 @@
                     const statusClass = meta.status === 'concluida' ? 'success' : 
                                       meta.status === 'pausada' ? 'warning' : 'primary';
                     
+                    const statusBadgeClass = statusClass === 'success' ? 'bg-green-100 text-green-800' : 
+                                             statusClass === 'warning' ? 'bg-yellow-100 text-yellow-800' : 
+                                             'bg-blue-100 text-blue-800';
+                    const progressBarClass = statusClass === 'success' ? 'bg-green-500' : 
+                                             statusClass === 'warning' ? 'bg-yellow-500' : 
+                                             'bg-blue-500';
                     return `
-                        <div class="col-md-6 mb-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <h5 class="card-title">${meta.titulo}</h5>
-                                        <span class="badge bg-${statusClass}">${meta.status.toUpperCase()}</span>
-                                    </div>
-                                    <p class="card-text text-muted">${meta.descricao || 'Sem descrição'}</p>
-                                    
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <small>Progresso</small>
-                                            <small>${formatarMoeda(meta.valor_atual)} / ${formatarMoeda(meta.valor_meta)}</small>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar bg-${statusClass}" style="width: ${Math.min(progresso, 100)}%"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">
-                                            Meta: ${formatarData(meta.data_meta)}
-                                        </small>
-                                        <div class="btn-group">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="editarMeta(${meta.id})">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-success" onclick="adicionarValorMeta(${meta.id})">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-secondary" onclick="verTransacoesMeta(${meta.id})">
-                                                <i class="fas fa-history"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="deletarMeta(${meta.id})">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
+                        <div class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
+                            <div class="flex justify-between items-start mb-3">
+                                <h5 class="font-semibold text-lg">${meta.titulo}</h5>
+                                <span class="px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClass}">${meta.status.toUpperCase()}</span>
+                            </div>
+                            <p class="text-gray-600 mb-4">${meta.descricao || 'Sem descrição'}</p>
+                            
+                            <div class="mb-4">
+                                <div class="flex justify-between mb-2 text-sm">
+                                    <span class="text-gray-600">Progresso</span>
+                                    <span class="font-medium">${formatarMoeda(meta.valor_atual)} / ${formatarMoeda(meta.valor_meta)}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="${progressBarClass} h-2 rounded-full transition-all" style="width: ${Math.min(progresso, 100)}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                                <span class="text-sm text-gray-500">Meta: ${formatarData(meta.data_meta)}</span>
+                                <div class="flex gap-2">
+                                    <button onclick="editarMeta(${meta.id})" class="p-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+                                        <i data-lucide="edit" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="adicionarValorMeta(${meta.id})" class="p-2 border border-green-300 text-green-600 rounded-lg hover:bg-green-50 transition">
+                                        <i data-lucide="plus" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="verTransacoesMeta(${meta.id})" class="p-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition">
+                                        <i data-lucide="history" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="deletarMeta(${meta.id})" class="p-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition">
+                                        <i data-lucide="trash" class="w-4 h-4"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     `;
                 }).join('');
                 
-                document.getElementById('lista-metas').innerHTML = metasHtml || '<p class="text-muted">Nenhuma meta encontrada</p>';
+                document.getElementById('lista-metas').innerHTML = metasHtml || '<p class="text-gray-500">Nenhuma meta encontrada</p>';
+                lucide.createIcons();
                 
             } catch (error) {
                 console.error('Erro ao carregar metas:', error);
@@ -1543,36 +1529,37 @@
                     const rentabilidade = ((inv.valor_atual - inv.valor_investido) / inv.valor_investido) * 100;
                     const rentabilidadeClass = rentabilidade >= 0 ? 'text-success' : 'text-danger';
                     
+                    const rentabilidadeTailwind = rentabilidade >= 0 ? 'text-green-600' : 'text-red-600';
                     return `
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col-md-4">
-                                        <h6 class="mb-1">${inv.nome}</h6>
-                                        <small class="text-muted">${inv.tipo.toUpperCase()}</small>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4 mb-4 hover:shadow-md transition">
+                            <div class="flex flex-col md:flex-row md:items-center gap-4">
+                                <div class="flex-1">
+                                    <h6 class="font-semibold mb-1">${inv.nome}</h6>
+                                    <p class="text-sm text-gray-500">${inv.tipo.toUpperCase()}</p>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-bold">${formatarMoeda(inv.valor_investido)}</div>
+                                    <p class="text-xs text-gray-500">Investido</p>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-bold">${formatarMoeda(inv.valor_atual)}</div>
+                                    <p class="text-xs text-gray-500">Atual</p>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-bold ${rentabilidadeTailwind}">${rentabilidade.toFixed(2)}%</div>
+                                    <p class="text-xs text-gray-500">Rentabilidade</p>
+                                </div>
+                                <div class="text-center md:text-right">
+                                    <div class="mb-2">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium ${inv.ativo ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">${inv.ativo ? 'ATIVO' : 'INATIVO'}</span>
                                     </div>
-                                    <div class="col-md-2 text-center">
-                                        <h6 class="mb-0">${formatarMoeda(inv.valor_investido)}</h6>
-                                        <small class="text-muted">Investido</small>
-                                    </div>
-                                    <div class="col-md-2 text-center">
-                                        <h6 class="mb-0">${formatarMoeda(inv.valor_atual)}</h6>
-                                        <small class="text-muted">Atual</small>
-                                    </div>
-                                    <div class="col-md-2 text-center">
-                                        <h6 class="mb-0 ${rentabilidadeClass}">${rentabilidade.toFixed(2)}%</h6>
-                                        <small class="text-muted">Rentabilidade</small>
-                                    </div>
-                                    <div class="col-md-2 text-end">
-                                        <span class="badge bg-${inv.ativo ? 'success' : 'secondary'}">${inv.ativo ? 'ATIVO' : 'INATIVO'}</span>
-                                        <div class="btn-group mt-2">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="editarInvestimento(${inv.id})">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="deletarInvestimento(${inv.id})">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
+                                    <div class="flex gap-2 justify-center md:justify-end">
+                                        <button onclick="editarInvestimento(${inv.id})" class="p-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+                                            <i data-lucide="edit" class="w-4 h-4"></i>
+                                        </button>
+                                        <button onclick="deletarInvestimento(${inv.id})" class="p-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition">
+                                            <i data-lucide="trash" class="w-4 h-4"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1580,7 +1567,8 @@
                     `;
                 }).join('');
                 
-                document.getElementById('lista-investimentos').innerHTML = investimentosHtml || '<p class="text-muted">Nenhum investimento encontrado</p>';
+                document.getElementById('lista-investimentos').innerHTML = investimentosHtml || '<p class="text-gray-500">Nenhum investimento encontrado</p>';
+                lucide.createIcons();
                 
             } catch (error) {
                 console.error('Erro ao carregar investimentos:', error);
@@ -1689,7 +1677,8 @@
                 });
                 
                 if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('modalContaPagar')).hide();
+                    document.getElementById('modalContaPagar').classList.add('hidden');
+                    document.getElementById('modalContaPagar').classList.remove('flex');
                     document.getElementById('formContaPagar').reset();
                     loadContasPagar();
                 }
@@ -1719,25 +1708,23 @@
                 const valorParcela = valorTotal / totalParcelas;
                 const dataInicial = new Date(dataPrimeira);
                 
-                let previa = '<div class="row">';
+                let previa = '<div class="grid grid-cols-1 md:grid-cols-2 gap-2">';
                 for (let i = 0; i < Math.min(totalParcelas, 6); i++) {
                     const dataVencimento = new Date(dataInicial);
                     dataVencimento.setMonth(dataVencimento.getMonth() + i);
                     
                     previa += `
-                        <div class="col-md-6 mb-2">
-                            <small class="text-muted">
-                                Parcela ${i + 1}: ${formatarValorParaInput(valorParcela)} - 
-                                ${dataVencimento.toLocaleDateString('pt-BR')}
-                            </small>
+                        <div class="text-sm text-gray-600">
+                            Parcela ${i + 1}: ${formatarValorParaInput(valorParcela)} - 
+                            ${dataVencimento.toLocaleDateString('pt-BR')}
                         </div>
                     `;
                 }
                 
                 if (totalParcelas > 6) {
                     previa += `
-                        <div class="col-12">
-                            <small class="text-muted">... e mais ${totalParcelas - 6} parcelas</small>
+                        <div class="col-span-2 text-sm text-gray-500">
+                            ... e mais ${totalParcelas - 6} parcelas
                         </div>
                     `;
                 }
@@ -1766,7 +1753,8 @@
                 
                 if (response.ok) {
                     const parcelas = await response.json();
-                    bootstrap.Modal.getInstance(document.getElementById('modalContaParcelada')).hide();
+                    document.getElementById('modalContaParcelada').classList.add('hidden');
+                    document.getElementById('modalContaParcelada').classList.remove('flex');
                     document.getElementById('formContaParcelada').reset();
                     document.getElementById('previaParcelas').innerHTML = '';
                     loadContasPagar();
@@ -1865,7 +1853,8 @@
                 });
                 
                 if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('modalContaReceber')).hide();
+                    document.getElementById('modalContaReceber').classList.add('hidden');
+                    document.getElementById('modalContaReceber').classList.remove('flex');
                     document.getElementById('formContaReceber').reset();
                     loadContasReceber();
                 }
@@ -1925,7 +1914,8 @@
                 });
                 
                 if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('modalMeta')).hide();
+                    document.getElementById('modalMeta').classList.add('hidden');
+                    document.getElementById('modalMeta').classList.remove('flex');
                     document.getElementById('formMeta').reset();
                     loadMetas();
                 }
@@ -1956,7 +1946,8 @@
                 });
                 
                 if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('modalTransacaoMeta')).hide();
+                    document.getElementById('modalTransacaoMeta').classList.add('hidden');
+                    document.getElementById('modalTransacaoMeta').classList.remove('flex');
                     document.getElementById('formTransacaoMeta').reset();
                     loadMetas();
                 }
@@ -2002,7 +1993,8 @@
                 });
                 
                 if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('modalInvestimento')).hide();
+                    document.getElementById('modalInvestimento').classList.add('hidden');
+                    document.getElementById('modalInvestimento').classList.remove('flex');
                     document.getElementById('formInvestimento').reset();
                     loadInvestimentos();
                 }
@@ -2073,8 +2065,10 @@
                 document.getElementById('editarObservacoesPagar').value = conta.observacoes || '';
                 
                 // Mostrar modal
-                const modal = new bootstrap.Modal(document.getElementById('modalEditarContaPagar'));
-                modal.show();
+                const modal = document.getElementById('modalEditarContaPagar');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                lucide.createIcons();
             } catch (error) {
                 console.error('Erro ao carregar conta a pagar:', error);
                 alert('Erro ao carregar dados da conta');
@@ -2100,7 +2094,8 @@
                 });
                 
                 if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('modalEditarContaPagar')).hide();
+                    document.getElementById('modalEditarContaPagar').classList.add('hidden');
+                    document.getElementById('modalEditarContaPagar').classList.remove('flex');
                     loadContasPagar();
                     alert('Conta atualizada com sucesso!');
                 } else {
@@ -2129,8 +2124,10 @@
                 document.getElementById('editarObservacoesReceber').value = conta.observacoes || '';
                 
                 // Mostrar modal
-                const modal = new bootstrap.Modal(document.getElementById('modalEditarContaReceber'));
-                modal.show();
+                const modal = document.getElementById('modalEditarContaReceber');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                lucide.createIcons();
             } catch (error) {
                 console.error('Erro ao carregar conta a receber:', error);
                 alert('Erro ao carregar dados da conta');
@@ -2156,7 +2153,8 @@
                 });
                 
                 if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('modalEditarContaReceber')).hide();
+                    document.getElementById('modalEditarContaReceber').classList.add('hidden');
+                    document.getElementById('modalEditarContaReceber').classList.remove('flex');
                     loadContasReceber();
                     alert('Conta atualizada com sucesso!');
                 } else {
@@ -2186,8 +2184,10 @@
                 document.getElementById('editarCorMeta').value = meta.cor || '#3B82F6';
                 
                 // Mostrar modal
-                const modal = new bootstrap.Modal(document.getElementById('modalEditarMeta'));
-                modal.show();
+                const modal = document.getElementById('modalEditarMeta');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                lucide.createIcons();
             } catch (error) {
                 console.error('Erro ao carregar meta:', error);
                 alert('Erro ao carregar dados da meta');
@@ -2214,7 +2214,8 @@
                 });
                 
                 if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('modalEditarMeta')).hide();
+                    document.getElementById('modalEditarMeta').classList.add('hidden');
+                    document.getElementById('modalEditarMeta').classList.remove('flex');
                     loadMetas();
                     alert('Meta atualizada com sucesso!');
                 } else {
@@ -2245,8 +2246,10 @@
                 document.getElementById('editarObservacoesInvestimento').value = investimento.observacoes || '';
                 
                 // Mostrar modal
-                const modal = new bootstrap.Modal(document.getElementById('modalEditarInvestimento'));
-                modal.show();
+                const modal = document.getElementById('modalEditarInvestimento');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                lucide.createIcons();
             } catch (error) {
                 console.error('Erro ao carregar investimento:', error);
                 alert('Erro ao carregar dados do investimento');
@@ -2274,7 +2277,8 @@
                 });
                 
                 if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('modalEditarInvestimento')).hide();
+                    document.getElementById('modalEditarInvestimento').classList.add('hidden');
+                    document.getElementById('modalEditarInvestimento').classList.remove('flex');
                     loadInvestimentos();
                     alert('Investimento atualizado com sucesso!');
                 } else {
@@ -2416,14 +2420,14 @@
             
             // Atualizar status geral
             const statusClasses = {
-                'excelente': 'bg-success',
-                'bom': 'bg-primary',
-                'regular': 'bg-warning',
-                'ruim': 'bg-danger'
+                'excelente': 'bg-green-100 text-green-800',
+                'bom': 'bg-blue-100 text-blue-800',
+                'regular': 'bg-yellow-100 text-yellow-800',
+                'ruim': 'bg-red-100 text-red-800'
             };
             const statusElement = document.getElementById('status-geral-mensal');
             statusElement.textContent = `Status: ${meta.status_geral.charAt(0).toUpperCase() + meta.status_geral.slice(1)}`;
-            statusElement.className = `badge ${statusClasses[meta.status_geral] || 'bg-secondary'}`;
+            statusElement.className = `px-3 py-1 rounded-full text-sm font-medium ${statusClasses[meta.status_geral] || 'bg-gray-100 text-gray-800'}`;
         }
         
         // Limpar status das metas mensais
@@ -2445,7 +2449,7 @@
             document.getElementById('valor-poupanca-mensal').textContent = 'R$ 0,00 / R$ 0,00';
             
             document.getElementById('status-geral-mensal').textContent = 'Status: Sem metas';
-            document.getElementById('status-geral-mensal').className = 'badge bg-secondary';
+            document.getElementById('status-geral-mensal').className = 'px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800';
         }
         
         // Atualizar lista de metas mensais
@@ -2454,14 +2458,15 @@
             
             if (metas.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-4">
-                        <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">Nenhuma meta mensal encontrada para ${mesAtual}/${anoAtual}</p>
-                        <button class="btn btn-primary" onclick="criarMetaMensal()">
-                            <i class="fas fa-plus me-2"></i>Criar Meta Mensal
+                    <div class="text-center py-8">
+                        <i data-lucide="calendar" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                        <p class="text-gray-500 mb-4">Nenhuma meta mensal encontrada para ${mesAtual}/${anoAtual}</p>
+                        <button onclick="criarMetaMensal()" class="px-4 py-2 bg-tce-main text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2 mx-auto">
+                            <i data-lucide="plus" class="w-4 h-4"></i>Criar Meta Mensal
                         </button>
                     </div>
                 `;
+                lucide.createIcons();
                 return;
             }
             
@@ -2474,31 +2479,29 @@
                     'ruim': 'danger'
                 };
                 
+                const statusBadgeTailwind = meta.status_geral === 'excelente' ? 'bg-green-100 text-green-800' :
+                                           meta.status_geral === 'bom' ? 'bg-blue-100 text-blue-800' :
+                                           meta.status_geral === 'regular' ? 'bg-yellow-100 text-yellow-800' :
+                                           'bg-red-100 text-red-800';
                 html += `
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-8">
-                                    <h6 class="mb-1">Meta de ${mesAtual}/${anoAtual}</h6>
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <small class="text-muted">Receitas: ${meta.percentual_receita}%</small>
-                                        </div>
-                                        <div class="col-6">
-                                            <small class="text-muted">Despesas: ${meta.percentual_despesa}%</small>
-                                        </div>
-                                    </div>
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 mb-4 hover:shadow-md transition">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div class="flex-1">
+                                <h6 class="font-semibold mb-2">Meta de ${mesAtual}/${anoAtual}</h6>
+                                <div class="grid grid-cols-2 gap-2 text-sm">
+                                    <p class="text-gray-600">Receitas: <span class="font-medium">${meta.percentual_receita}%</span></p>
+                                    <p class="text-gray-600">Despesas: <span class="font-medium">${meta.percentual_despesa}%</span></p>
                                 </div>
-                                <div class="col-md-4 text-end">
-                                    <span class="badge bg-${statusClasses[meta.status_geral] || 'secondary'}">${meta.status_geral}</span>
-                                    <div class="btn-group mt-2">
-                                        <button class="btn btn-sm btn-outline-primary" onclick="editarMetaMensal(${meta.id})">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger" onclick="deletarMetaMensal(${meta.id})">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                            </div>
+                            <div class="flex flex-col md:items-end gap-2">
+                                <span class="px-3 py-1 rounded-full text-xs font-medium ${statusBadgeTailwind}">${meta.status_geral}</span>
+                                <div class="flex gap-2">
+                                    <button onclick="editarMetaMensal(${meta.id})" class="p-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+                                        <i data-lucide="edit" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="deletarMetaMensal(${meta.id})" class="p-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition">
+                                        <i data-lucide="trash" class="w-4 h-4"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -2507,6 +2510,7 @@
             });
             
             container.innerHTML = html;
+            lucide.createIcons();
         }
         
         // Criar meta mensal

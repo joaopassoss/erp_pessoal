@@ -3,100 +3,81 @@
 {% block title %}Dashboard - ERP Pessoal{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
+{% block breadcrumb %}
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-primary shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Total de Usuários
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalUsers">-</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-users fa-2x text-gray-300"></i>
-                    </div>
-                </div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase mb-1">Total de Usuários</p>
+                <p class="text-2xl font-bold text-gray-800" id="totalUsers">-</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+                <i data-lucide="users" class="w-6 h-6"></i>
             </div>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-success shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Usuários Ativos
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeUsers">-</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-user-check fa-2x text-gray-300"></i>
-                    </div>
-                </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase mb-1">Usuários Ativos</p>
+                <p class="text-2xl font-bold text-gray-800" id="activeUsers">-</p>
+            </div>
+            <div class="w-12 h-12 bg-green-50 text-green-600 rounded-lg flex items-center justify-center">
+                <i data-lucide="user-check" class="w-6 h-6"></i>
             </div>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-info shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Administradores
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="adminUsers">-</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-user-shield fa-2x text-gray-300"></i>
-                    </div>
-                </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase mb-1">Administradores</p>
+                <p class="text-2xl font-bold text-gray-800" id="adminUsers">-</p>
+            </div>
+            <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center">
+                <i data-lucide="shield" class="w-6 h-6"></i>
             </div>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-warning shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Membros
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="memberUsers">-</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-user fa-2x text-gray-300"></i>
-                    </div>
-                </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase mb-1">Membros</p>
+                <p class="text-2xl font-bold text-gray-800" id="memberUsers">-</p>
+            </div>
+            <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center">
+                <i data-lucide="user" class="w-6 h-6"></i>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Usuários Recentes</h6>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-4 bg-emerald-50 border-b border-emerald-100">
+                <h3 class="font-bold text-emerald-800 flex items-center gap-2">
+                    <i data-lucide="users" class="w-4 h-4"></i> Usuários Recentes
+                </h3>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="recentUsersTable">
-                        <thead>
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-100 text-xs uppercase text-gray-500 font-bold border-b border-gray-200">
                             <tr>
-                                <th>Nome</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Data de Criação</th>
+                                <th class="px-4 py-3">Nome</th>
+                                <th class="px-4 py-3">Email</th>
+                                <th class="px-4 py-3">Role</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3">Data de Criação</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="recentUsersTable" class="divide-y divide-gray-100">
                             <!-- Dados carregados via JavaScript -->
                         </tbody>
                     </table>
@@ -105,30 +86,30 @@
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Ações Rápidas</h6>
+    <div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-4 bg-emerald-50 border-b border-emerald-100">
+                <h3 class="font-bold text-emerald-800 flex items-center gap-2">
+                    <i data-lucide="zap" class="w-4 h-4"></i> Ações Rápidas
+                </h3>
             </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="/profile" class="btn btn-primary">
-                        <i class="fas fa-user me-2"></i>
-                        Meu Perfil
-                    </a>
-                    <a href="/financeiro" class="btn btn-warning">
-                        <i class="fas fa-wallet me-2"></i>
-                        Módulo Financeiro
-                    </a>
-                    <a href="/admin" class="btn btn-success" id="adminBtn" style="display: none;">
-                        <i class="fas fa-cog me-2"></i>
-                        Painel Admin
-                    </a>
-                    <button class="btn btn-info" onclick="refreshData()">
-                        <i class="fas fa-sync me-2"></i>
-                        Atualizar Dados
-                    </button>
-                </div>
+            <div class="p-4 space-y-2">
+                <a href="/profile" class="block w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition text-center">
+                    <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
+                    Meu Perfil
+                </a>
+                <a href="/financeiro" class="block w-full px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg transition text-center">
+                    <i data-lucide="wallet" class="w-4 h-4 inline mr-2"></i>
+                    Módulo Financeiro
+                </a>
+                <a href="/admin" class="block w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition text-center" id="adminBtn" style="display: none;">
+                    <i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>
+                    Painel Admin
+                </a>
+                <button onclick="refreshData()" class="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                    Atualizar Dados
+                </button>
             </div>
         </div>
     </div>
@@ -137,6 +118,8 @@
 
 {% block scripts %}
 <script>
+    lucide.createIcons();
+    
     // Carregar dados do dashboard
     async function loadDashboardData() {
         const token = localStorage.getItem('token');
@@ -159,25 +142,26 @@
                 document.getElementById('memberUsers').textContent = users.filter(u => u.role === 'membro').length;
                 
                 // Preencher tabela de usuários recentes
-                const tbody = document.querySelector('#recentUsersTable tbody');
+                const tbody = document.querySelector('#recentUsersTable');
                 tbody.innerHTML = '';
                 
                 users.slice(0, 5).forEach(user => {
                     const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50 transition';
                     row.innerHTML = `
-                        <td>${user.full_name}</td>
-                        <td>${user.email}</td>
-                        <td>
-                            <span class="badge ${user.role === 'admin' ? 'bg-danger' : 'bg-primary'}">
+                        <td class="px-4 py-3 font-medium text-gray-800">${user.full_name}</td>
+                        <td class="px-4 py-3 text-gray-600">${user.email}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-bold rounded-full ${user.role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}">
                                 ${user.role === 'admin' ? 'Admin' : 'Membro'}
                             </span>
                         </td>
-                        <td>
-                            <span class="badge ${user.is_active ? 'bg-success' : 'bg-secondary'}">
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-bold rounded-full ${user.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">
                                 ${user.is_active ? 'Ativo' : 'Inativo'}
                             </span>
                         </td>
-                        <td>${new Date(user.created_at).toLocaleDateString('pt-BR')}</td>
+                        <td class="px-4 py-3 text-gray-600">${new Date(user.created_at).toLocaleDateString('pt-BR')}</td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -212,6 +196,7 @@
     // Carregar dados quando a página carregar
     document.addEventListener('DOMContentLoaded', function() {
         loadDashboardData();
+        lucide.createIcons();
     });
 </script>
 {% endblock %}

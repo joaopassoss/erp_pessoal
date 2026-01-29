@@ -3,117 +3,136 @@
 {% block title %}Painel Admin - ERP Pessoal{% endblock %}
 {% block page_title %}Painel Administrativo{% endblock %}
 
+{% block breadcrumb %}
+<li><i data-lucide="chevron-right" class="w-3 h-3"></i></li>
+<li class="text-white font-medium">Administração</li>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold text-primary">Gerenciar Usuários</h6>
-                <div>
-                    <a href="/cadastrar-usuario" class="btn btn-success btn-sm me-2">
-                        <i class="fas fa-user-plus me-2"></i>
-                        Cadastrar Usuário
-                    </a>
-                    <button class="btn btn-primary btn-sm" onclick="refreshUsers()">
-                        <i class="fas fa-sync me-2"></i>
-                        Atualizar
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="usersTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nome</th>
-                                <th>Email</th>
-                                <th>Username</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Data de Criação</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Dados carregados via JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-4 bg-emerald-50 border-b border-emerald-100 flex justify-between items-center">
+        <h3 class="font-bold text-emerald-800 flex items-center gap-2">
+            <i data-lucide="users" class="w-4 h-4"></i> Gerenciar Usuários
+        </h3>
+        <div class="flex gap-2">
+            <a href="/cadastrar-usuario" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition text-sm flex items-center gap-2">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                Cadastrar Usuário
+            </a>
+            <button onclick="refreshUsers()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition text-sm flex items-center gap-2">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                Atualizar
+            </button>
+        </div>
+    </div>
+    <div class="p-6">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-gray-100 text-xs uppercase text-gray-500 font-bold border-b border-gray-200">
+                    <tr>
+                        <th class="px-4 py-3">ID</th>
+                        <th class="px-4 py-3">Nome</th>
+                        <th class="px-4 py-3">Email</th>
+                        <th class="px-4 py-3">Username</th>
+                        <th class="px-4 py-3">Role</th>
+                        <th class="px-4 py-3">Status</th>
+                        <th class="px-4 py-3">Data de Criação</th>
+                        <th class="px-4 py-3 text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTable" class="divide-y divide-gray-100">
+                    <!-- Dados carregados via JavaScript -->
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <!-- Modal para editar usuário -->
-<div class="modal fade" id="editUserModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Editar Usuário</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editUserForm">
-                    <input type="hidden" id="editUserId">
-                    
-                    <div class="mb-3">
-                        <label for="editFullName" class="form-label">Nome Completo</label>
-                        <input type="text" class="form-control" id="editFullName" name="full_name" required>
+<div id="editUserModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-gray-800">Editar Usuário</h3>
+            <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div class="p-6">
+            <form id="editUserForm" class="space-y-4">
+                <input type="hidden" id="editUserId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="editFullName" class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                        <input type="text" id="editFullName" name="full_name" required 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="editEmail" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="editEmail" name="email" required>
+                    <div>
+                        <label for="editEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="editEmail" name="email" required 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="editUsername" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="editUsername" name="username" required>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="editUsername" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input type="text" id="editUsername" name="username" required 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="editPhone" class="form-label">Telefone</label>
-                        <input type="tel" class="form-control" id="editPhone" name="phone">
+                    <div>
+                        <label for="editPhone" class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                        <input type="tel" id="editPhone" name="phone" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="editAddress" class="form-label">Endereço</label>
-                        <textarea class="form-control" id="editAddress" name="address" rows="3"></textarea>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="editBio" class="form-label">Biografia</label>
-                        <textarea class="form-control" id="editBio" name="bio" rows="3"></textarea>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="editRole" class="form-label">Role</label>
-                        <select class="form-control" id="editRole" name="role">
+                </div>
+                
+                <div>
+                    <label for="editAddress" class="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
+                    <textarea id="editAddress" name="address" rows="3" 
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"></textarea>
+                </div>
+                
+                <div>
+                    <label for="editBio" class="block text-sm font-medium text-gray-700 mb-1">Biografia</label>
+                    <textarea id="editBio" name="bio" rows="3" 
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="editRole" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                        <select id="editRole" name="role" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
                             <option value="membro">Membro</option>
                             <option value="admin">Administrador</option>
                         </select>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="editStatus" class="form-label">Status</label>
-                        <select class="form-control" id="editStatus" name="is_active">
+                    <div>
+                        <label for="editStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="editStatus" name="is_active" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
                             <option value="true">Ativo</option>
                             <option value="false">Inativo</option>
                         </select>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="editPassword" class="form-label">Nova Senha</label>
-                        <input type="password" class="form-control" id="editPassword" name="password" placeholder="Deixe em branco para não alterar">
-                        <small class="form-text text-muted">Mínimo 6 caracteres. Deixe em branco para manter a senha atual.</small>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="saveUserChanges()">Salvar</button>
-            </div>
+                </div>
+                
+                <div>
+                    <label for="editPassword" class="block text-sm font-medium text-gray-700 mb-1">Nova Senha</label>
+                    <input type="password" id="editPassword" name="password" placeholder="Deixe em branco para não alterar" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    <small class="text-gray-500 text-xs">Mínimo 6 caracteres. Deixe em branco para manter a senha atual.</small>
+                </div>
+            </form>
+        </div>
+        <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
+            <button onclick="closeEditModal()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                Cancelar
+            </button>
+            <button onclick="saveUserChanges()" class="px-4 py-2 bg-tce-main hover:bg-emerald-700 text-white font-semibold rounded-lg transition">
+                Salvar
+            </button>
         </div>
     </div>
 </div>
@@ -121,6 +140,8 @@
 
 {% block scripts %}
 <script>
+    lucide.createIcons();
+    
     // Carregar lista de usuários
     async function loadUsers() {
         const token = localStorage.getItem('token');
@@ -134,38 +155,40 @@
             
             if (response.ok) {
                 const users = await response.json();
-                const tbody = document.querySelector('#usersTable tbody');
+                const tbody = document.querySelector('#usersTable');
                 tbody.innerHTML = '';
                 
                 users.forEach(user => {
                     const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50 transition';
                     row.innerHTML = `
-                        <td>${user.id}</td>
-                        <td>${user.full_name}</td>
-                        <td>${user.email}</td>
-                        <td>${user.username}</td>
-                        <td>
-                            <span class="badge ${user.role === 'admin' ? 'bg-danger' : 'bg-primary'}">
+                        <td class="px-4 py-3 text-gray-600">${user.id}</td>
+                        <td class="px-4 py-3 font-medium text-gray-800">${user.full_name}</td>
+                        <td class="px-4 py-3 text-gray-600">${user.email}</td>
+                        <td class="px-4 py-3 text-gray-600">${user.username}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-bold rounded-full ${user.role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}">
                                 ${user.role === 'admin' ? 'Admin' : 'Membro'}
                             </span>
                         </td>
-                        <td>
-                            <span class="badge ${user.is_active ? 'bg-success' : 'bg-secondary'}">
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-bold rounded-full ${user.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">
                                 ${user.is_active ? 'Ativo' : 'Inativo'}
                             </span>
                         </td>
-                        <td>${new Date(user.created_at).toLocaleDateString('pt-BR')}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary" onclick="editUser(${user.id})">
-                                <i class="fas fa-edit"></i>
+                        <td class="px-4 py-3 text-gray-600">${new Date(user.created_at).toLocaleDateString('pt-BR')}</td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="editUser(${user.id})" class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition text-sm mr-1">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
                             </button>
-                            <button class="btn btn-sm ${user.is_active ? 'btn-warning' : 'btn-success'}" onclick="toggleStatus(${user.id}, ${!user.is_active})">
-                                <i class="fas fa-${user.is_active ? 'ban' : 'check'}"></i>
+                            <button onclick="toggleStatus(${user.id}, ${!user.is_active})" class="px-3 py-1 ${user.is_active ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'} text-white rounded-lg transition text-sm">
+                                <i data-lucide="${user.is_active ? 'ban' : 'check'}" class="w-4 h-4"></i>
                             </button>
                         </td>
                     `;
                     tbody.appendChild(row);
                 });
+                lucide.createIcons();
             }
         } catch (error) {
             console.error('Erro ao carregar usuários:', error);
@@ -200,13 +223,18 @@
                 document.getElementById('editPassword').value = ''; // Limpar campo de senha
                 
                 // Mostrar modal
-                const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
-                modal.show();
+                document.getElementById('editUserModal').classList.remove('hidden');
+                lucide.createIcons();
             }
         } catch (error) {
             console.error('Erro ao carregar dados do usuário:', error);
             alert('Erro ao carregar dados do usuário');
         }
+    }
+    
+    // Fechar modal
+    function closeEditModal() {
+        document.getElementById('editUserModal').classList.add('hidden');
     }
     
     // Salvar alterações do usuário
@@ -278,7 +306,7 @@
                 }
                 
                 alert('Usuário atualizado com sucesso!');
-                bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+                closeEditModal();
                 loadUsers();
             } else {
                 const error = await response.json();
@@ -323,6 +351,7 @@
     // Carregar usuários quando a página carregar
     document.addEventListener('DOMContentLoaded', function() {
         loadUsers();
+        lucide.createIcons();
     });
 </script>
 {% endblock %}

@@ -1,136 +1,168 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - ERP Pessoal</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-        }
-        .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        }
-        .btn-login {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 25px;
-            padding: 12px 30px;
-        }
-        .form-control {
-            border-radius: 25px;
-            border: 2px solid #e9ecef;
-            padding: 12px 20px;
-        }
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .bg-tce-main { background-color: #059669; }
+        .text-tce-main { color: #059669; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4">
-                <div class="card login-card">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <i class="fas fa-building fa-3x text-primary mb-3"></i>
-                            <h2 class="fw-bold">ERP Pessoal</h2>
-                            <p class="text-muted">Faça login para continuar</p>
-                        </div>
+<body class="bg-gray-50 text-slate-800 flex flex-col min-h-screen">
 
-                        <form id="loginForm">
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-user"></i>
-                                    </span>
-                                    <input type="text" class="form-control" id="username" name="username" required>
+    <div class="bg-emerald-950 text-emerald-100 py-1 text-xs border-b border-emerald-900">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="flex gap-4">
+                <a href="#conteudo" class="hover:text-white transition">Ir para Conteúdo [1]</a>
+                <a href="#menu" class="hover:text-white transition">Ir para Menu [2]</a>
+            </div>
+            <div class="flex gap-3 items-center">
+                <button class="hover:text-white font-bold" title="Alto Contraste">◐</button>
+                <button class="hover:text-white font-bold" title="Aumentar Fonte">A+</button>
+                <button class="hover:text-white font-bold" title="Diminuir Fonte">A-</button>
+                <span class="h-3 w-px bg-emerald-700 mx-1"></span>
+                <span class="font-bold text-emerald-400">VLibras</span>
+            </div>
+        </div>
+    </div>
+
+    <header class="bg-white shadow-sm border-b border-gray-100">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 flex items-center justify-center font-bold">
+                        <span class="text-2xl text-emerald-700">ERP</span>
+                    </div>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xm font-bold text-gray-800">ERP Pessoal</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main id="conteudo" class="flex-grow flex items-center justify-center py-12">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-center">
+                <div class="w-full max-w-md">
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                        <div class="p-8">
+                            <div class="text-center mb-6">
+                                <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i data-lucide="building" class="w-8 h-8"></i>
                                 </div>
+                                <h2 class="text-2xl font-bold text-gray-800 mb-2">ERP Pessoal</h2>
+                                <p class="text-gray-500">Faça login para continuar</p>
                             </div>
 
-                            <div class="mb-4">
-                                <label for="password" class="form-label">Senha</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-lock"></i>
-                                    </span>
-                                    <input type="password" class="form-control" id="password" name="password" required>
+                            <form id="loginForm" class="space-y-4">
+                                <div>
+                                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="user" class="w-5 h-5 text-gray-400"></i>
+                                        </div>
+                                        <input type="text" id="username" name="username" required 
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-login">
-                                    <i class="fas fa-sign-in-alt me-2"></i>
-                                    Entrar
+                                <div>
+                                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="lock" class="w-5 h-5 text-gray-400"></i>
+                                        </div>
+                                        <input type="password" id="password" name="password" required 
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <button type="submit" class="w-full py-3 bg-tce-main hover:bg-emerald-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2 shadow-sm">
+                                        <i data-lucide="log-in" class="w-5 h-5"></i>
+                                        Entrar
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-500 mb-3">Não tem uma conta?</p>
+                                <button onclick="showRegister()" class="text-sm text-emerald-700 hover:text-emerald-800 font-medium">
+                                    Criar Conta
                                 </button>
                             </div>
-                        </form>
-
-                        <div class="text-center mt-4">
-                            <p class="text-muted">Não tem uma conta?</p>
-                            <button class="btn btn-outline-primary" onclick="showRegister()">
-                                <i class="fas fa-user-plus me-2"></i>
-                                Criar Conta
-                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Modal de Registro -->
-    <div class="modal fade" id="registerModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Criar Nova Conta</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="registerForm">
-                        <div class="mb-3">
-                            <label for="regFullName" class="form-label">Nome Completo</label>
-                            <input type="text" class="form-control" id="regFullName" name="full_name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="regEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="regEmail" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="regUsername" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="regUsername" name="username" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="regPassword" class="form-label">Senha</label>
-                            <input type="password" class="form-control" id="regPassword" name="password" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="regPhone" class="form-label">Telefone (opcional)</label>
-                            <input type="tel" class="form-control" id="regPhone" name="phone">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="register()">Criar Conta</button>
-                </div>
+    <div id="registerModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-800">Criar Nova Conta</h3>
+                <button onclick="closeRegister()" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="registerForm" class="space-y-4">
+                    <div>
+                        <label for="regFullName" class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                        <input type="text" id="regFullName" name="full_name" required 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label for="regEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="regEmail" name="email" required 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label for="regUsername" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input type="text" id="regUsername" name="username" required 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label for="regPassword" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                        <input type="password" id="regPassword" name="password" required 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label for="regPhone" class="block text-sm font-medium text-gray-700 mb-1">Telefone (opcional)</label>
+                        <input type="tel" id="regPhone" name="phone" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    </div>
+                </form>
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
+                <button onclick="closeRegister()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                    Cancelar
+                </button>
+                <button onclick="register()" class="px-4 py-2 bg-tce-main hover:bg-emerald-700 text-white font-semibold rounded-lg transition">
+                    Criar Conta
+                </button>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <footer class="bg-slate-900 text-slate-400 py-8 border-t-4 border-emerald-600">
+        <div class="container mx-auto px-6 text-center text-xs">
+            &copy; 2026 ERP Pessoal. Todos os direitos reservados.
+        </div>
+    </footer>
+
     <script>
+        lucide.createIcons();
+        
         // Verificar se já está logado
         if (localStorage.getItem('token')) {
             window.location.href = '/dashboard';
@@ -167,8 +199,13 @@
 
         // Mostrar modal de registro
         function showRegister() {
-            const modal = new bootstrap.Modal(document.getElementById('registerModal'));
-            modal.show();
+            document.getElementById('registerModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        // Fechar modal de registro
+        function closeRegister() {
+            document.getElementById('registerModal').classList.add('hidden');
         }
 
         // Registro
@@ -188,7 +225,7 @@
                 
                 if (response.ok) {
                     alert('Conta criada com sucesso! Faça login para continuar.');
-                    bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+                    closeRegister();
                     form.reset();
                 } else {
                     const error = await response.json();

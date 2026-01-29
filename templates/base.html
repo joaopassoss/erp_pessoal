@@ -1,118 +1,113 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ERP Pessoal{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <style>
-        .sidebar {
-            min-height: 100vh;
-            background-color: #343a40;
-        }
-        .sidebar .nav-link {
-            color: #adb5bd;
-        }
-        .sidebar .nav-link:hover {
-            color: #fff;
-        }
-        .sidebar .nav-link.active {
-            color: #fff;
-            background-color: #495057;
-        }
-        .main-content {
-            background-color: #f8f9fa;
-            min-height: 100vh;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .text-tce-main { color: #059669; }
+        .bg-tce-main { background-color: #059669; }
+        .group:hover .group-hover\:block { display: block; }
         .profile-img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             object-fit: cover;
         }
-        .card {
-            border: none;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
     </style>
 </head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-                <div class="position-sticky pt-3">
-                    <div class="text-center mb-4">
-                        <h4 class="text-white">ERP Pessoal</h4>
-                    </div>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/dashboard">
-                                <i class="fas fa-tachometer-alt me-2"></i>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/profile">
-                                <i class="fas fa-user me-2"></i>
-                                Meu Perfil
-                            </a>
-                        </li>
-                        <li class="nav-item" id="admin-panel" style="display: none;">
-                            <a class="nav-link" href="/admin">
-                                <i class="fas fa-cog me-2"></i>
-                                Painel Admin
-                            </a>
-                        </li>
-                        <li class="nav-item" id="cadastrar-usuario-panel" style="display: none;">
-                            <a class="nav-link" href="/cadastrar-usuario">
-                                <i class="fas fa-user-plus me-2"></i>
-                                Cadastrar Usuário
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/financeiro">
-                                <i class="fas fa-wallet me-2"></i>
-                                Financeiro
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="logout()">
-                                <i class="fas fa-sign-out-alt me-2"></i>
-                                Sair
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
+<body class="bg-gray-50 text-slate-800 flex flex-col min-h-screen">
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">{% block page_title %}Dashboard{% endblock %}</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
-                                <img id="userProfileImg" src="/static/default-avatar.svg" alt="Profile" class="profile-img me-2">
-                                <span id="userName">Usuário</span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/profile">Meu Perfil</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#" onclick="logout()">Sair</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                {% block content %}{% endblock %}
-            </main>
+    <div class="bg-emerald-950 text-emerald-100 py-1 text-xs border-b border-emerald-900">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="flex gap-4">
+                <a href="#conteudo" class="hover:text-white transition">Ir para Conteúdo [1]</a>
+                <a href="#menu" class="hover:text-white transition">Ir para Menu [2]</a>
+            </div>
+            <div class="flex gap-3 items-center">
+                <button class="hover:text-white font-bold" title="Alto Contraste">◐</button>
+                <button class="hover:text-white font-bold" title="Aumentar Fonte">A+</button>
+                <button class="hover:text-white font-bold" title="Diminuir Fonte">A-</button>
+                <span class="h-3 w-px bg-emerald-700 mx-1"></span>
+                <span class="font-bold text-emerald-400">VLibras</span>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <header class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-between items-center h-20">
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 flex items-center justify-center font-bold">
+                        <span class="text-2xl text-emerald-700">ERP</span>
+                    </div>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xm font-bold text-gray-800">ERP Pessoal</span>
+                    </div>
+                </div>
+
+                <nav class="hidden lg:flex items-center gap-1 text-sm font-medium text-gray-600">
+                    <a href="/dashboard" class="px-3 py-2 hover:text-emerald-700 transition">Dashboard</a>
+                    <a href="/profile" class="px-3 py-2 hover:text-emerald-700 transition">Perfil</a>
+                    <a href="/financeiro" class="px-3 py-2 hover:text-emerald-700 transition">Financeiro</a>
+                    <span id="admin-nav" style="display: none;">
+                        <a href="/admin" class="px-3 py-2 hover:text-emerald-700 transition">Admin</a>
+                        <a href="/cadastrar-usuario" class="px-3 py-2 hover:text-emerald-700 transition">Cadastrar Usuário</a>
+                    </span>
+                    
+                    <div class="ml-4 relative group">
+                        <button class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-md font-semibold transition flex items-center gap-2 text-xs border border-emerald-100">
+                            <img id="userProfileImg" src="/static/default-avatar.svg" alt="Profile" class="profile-img">
+                            <span id="userName">Usuário</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </button>
+                        <div class="hidden group-hover:block absolute top-full right-0 mt-2 w-48 bg-white shadow-xl border border-gray-200 rounded-lg py-2">
+                            <a href="/profile" class="block px-4 py-2 hover:bg-emerald-50 text-gray-700 text-sm">Meu Perfil</a>
+                            <hr class="my-1">
+                            <a href="#" onclick="logout()" class="block px-4 py-2 hover:bg-emerald-50 text-gray-700 text-sm">Sair</a>
+                        </div>
+                    </div>
+                </nav>
+
+                <button class="lg:hidden p-2 text-gray-600"><i data-lucide="menu"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="bg-[#022c22] py-10 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-emerald-900 to-[#022c22]"></div>
+        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/connected.png')]"></div>
+        
+        <div class="container mx-auto px-6 relative z-10">
+            <h1 class="text-3xl font-bold text-white mb-2">{% block page_title %}Dashboard{% endblock %}</h1>
+            <nav class="flex text-sm text-emerald-200/80">
+                <ol class="flex items-center gap-2">
+                    <li><a href="/dashboard" class="hover:text-white">Início</a></li>
+                    {% block breadcrumb %}{% endblock %}
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <main id="conteudo" class="container mx-auto px-6 py-12 flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 border-t-4 border-emerald-600 mt-auto">
+        <div class="container mx-auto px-6 text-center text-xs">
+            &copy; 2026 ERP Pessoal. Todos os direitos reservados.
+        </div>
+    </footer>
+
     <script>
+        lucide.createIcons();
+        
         // Verificar autenticação
         function checkAuth() {
             const token = localStorage.getItem('token');
@@ -142,8 +137,7 @@
                     }
                     
                     if (user.role === 'admin') {
-                        document.getElementById('admin-panel').style.display = 'block';
-                        document.getElementById('cadastrar-usuario-panel').style.display = 'block';
+                        document.getElementById('admin-nav').style.display = 'inline';
                     }
                 } else {
                     localStorage.removeItem('token');
@@ -167,6 +161,7 @@
             if (checkAuth()) {
                 loadUserData();
             }
+            lucide.createIcons();
         });
     </script>
     {% block scripts %}{% endblock %}

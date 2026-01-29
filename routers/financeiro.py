@@ -1670,4 +1670,3 @@ def gerar_relatorios_todos_meses(
         "meses_gerados": meses_gerados,
         "total_meses": len(meses_gerados)
     }
-
